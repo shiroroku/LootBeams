@@ -1,0 +1,25 @@
+license = "MIT"
+loaderVersion = "[36,)"
+modLoader = "javafml"
+[[mods]]
+displayName = "LootBeams"
+modId = "lootbeams"
+version = "1.16.5"
+logoFile = "banner.png"
+authors = "shiroroku(elise)"
+credits = "amo"
+description = '''
+Renders highly configurable colored beams on dropped items!
+'''
+[[dependencies.lootbeams]]
+mandatory = true
+modId = "forge"
+ordering = "NONE"
+side = "BOTH"
+versionRange = "[36,)"
+[[dependencies.lootbeams]]
+mandatory = true
+modId = "minecraft"
+ordering = "NONE"
+side = "BOTH"
+versionRange = "[1.16.5,1.17)"
