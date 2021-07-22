@@ -36,7 +36,7 @@ public class Configuration {
 	public static ForgeConfigSpec.DoubleValue NAMETAG_BACKGROUND_ALPHA;
 	public static ForgeConfigSpec.DoubleValue NAMETAG_SCALE;
 	public static ForgeConfigSpec.DoubleValue NAMETAG_Y_OFFSET;
-	public static ForgeConfigSpec.BooleanValue RPGLOOT_COMPAT_RARITY;
+	public static ForgeConfigSpec.BooleanValue DMCLOOT_COMPAT_RARITY;
 	public static ForgeConfigSpec.ConfigValue<List<String>> CUSTOM_RARITIES;
 
 	static {
@@ -67,7 +67,7 @@ public class Configuration {
 		NAMETAG_BACKGROUND_ALPHA = clientBuilder.comment("Transparency of the nametag background/border.").defineInRange("nametag_background_alpha", 0.5D, 0D, 1D);
 		NAMETAG_SCALE = clientBuilder.comment("Scale of the nametag.").defineInRange("nametag_scale", 1, -10D, 10D);
 		NAMETAG_Y_OFFSET = clientBuilder.comment("The Y-offset of the nametag.").defineInRange("nametag_y_offset", 0.75D, -30D, 30D);
-		RPGLOOT_COMPAT_RARITY = clientBuilder.comment("If a smaller tag should be rendered under with RPGLoot rarities.").define("rpgloot_compat_rarity", true);
+		DMCLOOT_COMPAT_RARITY = clientBuilder.comment("If a smaller tag should be rendered under with DMCLoot rarities.").define("dmcloot_compat_rarity", true);
 		CUSTOM_RARITIES = clientBuilder.comment("Define what tooltips the smaller tag should render on. Example: \"Exotic\", \"Ancient\"").define("custom_rarities", new ArrayList<>());
 		clientBuilder.pop();
 

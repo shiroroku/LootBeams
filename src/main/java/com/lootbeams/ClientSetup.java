@@ -66,12 +66,9 @@ public class ClientSetup {
 		if (registryNames.size() > 0) {
 			for (String id : registryNames) {
 				if (!id.isEmpty()) {
-					String[] idSplit = id.split(":");
-					if (idSplit.length == 2) {
-						Item registryItem = ForgeRegistries.ITEMS.getValue(new ResourceLocation(idSplit[0], idSplit[1]));
-						if (registryItem != null && registryItem.getItem() == item.getItem()) {
-							return true;
-						}
+					ResourceLocation itemResource = ResourceLocation.tryParse(id);
+					if (itemResource != null && ForgeRegistries.ITEMS.getValue(itemResource).getItem() == item.getItem()) {
+						return true;
 					}
 				}
 			}

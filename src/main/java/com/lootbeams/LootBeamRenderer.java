@@ -116,10 +116,10 @@ public class LootBeamRenderer extends RenderState {
 			stack.translate(0.0D, 10, 0.0D);
 			stack.scale(0.75f, 0.75f, 0.75f);
 			boolean textDrawn = false;
-			if (Configuration.RPGLOOT_COMPAT_RARITY.get() && ModList.get().isLoaded("rpgloot")) {
-				//Render rpgloot rarity small tags
-				if (item.getItem().hasTag() && item.getItem().getTag().contains("rpgloot.rarity")) {
-					TranslationTextComponent translatedRarity = new TranslationTextComponent("rarity.rpgloot." + item.getItem().getTag().getString("rpgloot.rarity"));
+			if (Configuration.DMCLOOT_COMPAT_RARITY.get() && ModList.get().isLoaded("dmcloot")) {
+				//Render dmcloot rarity small tags
+				if (item.getItem().hasTag() && item.getItem().getTag().contains("dmcloot.rarity")) {
+					TranslationTextComponent translatedRarity = new TranslationTextComponent("rarity.dmcloot." + item.getItem().getTag().getString("dmcloot.rarity"));
 					RenderText(fontrenderer, stack, buffer, translatedRarity.getString(), customDarker(new Color(foregroundColor)).getRGB(), backgroundColor, backgroundAlpha);
 					//fontrenderer.drawInBatch(translatedRarity.getString(), (float) (-fontrenderer.width(translatedRarity) / 2), 0f, customDarker(new Color(foregroundColor)).getRGB(), false, stack.last().pose(), buffer, false, backgroundColor, 15728864);
 					textDrawn = true;
