@@ -53,22 +53,22 @@ public class Configuration {
 
 		clientBuilder.comment("Item Config").push("Items");
 		ALL_ITEMS = clientBuilder.comment("If all Items Loot Beams should be rendered. Has priority over only_equipment.").define("all_items", true);
-		ONLY_EQUIPMENT = clientBuilder.comment("If Loot Beams should only be rendered on equipment.").define("only_equipment", false);
-		WHITELIST = clientBuilder.comment("Registry names of items that Loot Beams should render on.").define("whitelist", new ArrayList<>());
+		ONLY_EQUIPMENT = clientBuilder.comment("If Loot Beams should only be rendered on equipment. (Equipment includes: Swords, Tools, Armor, Shields, Bows, Crossbows, Tridents, Arrows, and Fishing Rods)").define("only_equipment", false);
+		WHITELIST = clientBuilder.comment("Registry names of items that Loot Beams should render on. Example: \"minecraft:stone\", \"minecraft:iron_ingot\"").define("whitelist", new ArrayList<>());
 		BLACKLIST = clientBuilder.comment("Registry names of items that Loot Beams should NOT render on. This has priority over everything.").define("blacklist", new ArrayList<>());
 		clientBuilder.pop();
 
 		clientBuilder.comment("Item nametags").push("Nametags");
-		BORDERS = clientBuilder.comment("Set to false to render flat background instead.").define("borders", true);
-		RENDER_NAMETAGS = clientBuilder.comment("If Item names should be rendered.").define("render_nametags", true);
-		RENDER_NAMETAGS_ONLOOK = clientBuilder.comment("If Item names should be rendered when looking at items.").define("render_nametags_onlook", true);
+		BORDERS = clientBuilder.comment("Render nametags as bordered. Set to false for flat nametag with background.").define("borders", true);
+		RENDER_NAMETAGS = clientBuilder.comment("If Item nametags should be rendered.").define("render_nametags", true);
+		RENDER_NAMETAGS_ONLOOK = clientBuilder.comment("If Item nametags should be rendered when looking at items.").define("render_nametags_onlook", true);
 		NAMETAG_LOOK_SENSITIVITY = clientBuilder.comment("How close the player has to look at the item to render the nametag.").defineInRange("nametag_look_sensitivity", 0.018D, 0D, 5D);
 		NAMETAG_TEXT_ALPHA = clientBuilder.comment("Transparency of the nametag text.").defineInRange("nametag_text_alpha", 1D, 0D, 1D);
 		NAMETAG_BACKGROUND_ALPHA = clientBuilder.comment("Transparency of the nametag background/border.").defineInRange("nametag_background_alpha", 0.5D, 0D, 1D);
 		NAMETAG_SCALE = clientBuilder.comment("Scale of the nametag.").defineInRange("nametag_scale", 1, -10D, 10D);
 		NAMETAG_Y_OFFSET = clientBuilder.comment("The Y-offset of the nametag.").defineInRange("nametag_y_offset", 0.75D, -30D, 30D);
 		DMCLOOT_COMPAT_RARITY = clientBuilder.comment("If a smaller tag should be rendered under with DMCLoot rarities.").define("dmcloot_compat_rarity", true);
-		CUSTOM_RARITIES = clientBuilder.comment("Define what tooltips the smaller tag should render on. Example: \"Exotic\", \"Ancient\"").define("custom_rarities", new ArrayList<>());
+		CUSTOM_RARITIES = clientBuilder.comment("Define what the smaller tag should render on. Example: \"Exotic\", \"Ancient\". The string supplied has to be the tooltip line below the name. This is really only used for modpacks.").define("custom_rarities", new ArrayList<>());
 		clientBuilder.pop();
 
 		clientBuilder.pop();
@@ -83,19 +83,23 @@ public class Configuration {
 				if (!unparsed.isEmpty()) {
 					String[] configValue = unparsed.split("=");
 					if (configValue.length == 2) {
-						String[] registryName = configValue[0].split(":");
-						if (registryName.length == 2) {
-							if (registryName[0].startsWith("#")) {
-								if (i.getTags().contains(new ResourceLocation(registryName[0].replace("#", ""), registryName[1]))) {
-									return Color.decode(configValue[1]);
-								}
-							} else {
-								Item registryItem = ForgeRegistries.ITEMS.getValue(new ResourceLocation(registryName[0], registryName[1]));
+						String nameIn = configValue[0];
+						String colorIn = configValue[1];
+						ResourceLocation registry = ResourceLocation.tryParse(nameIn.replace("#", ""));
+
+						if (nameIn.startsWith("#")) {
+							if (i.getTags().contains(registry)) {
+								return Color.decode(colorIn);
+							}
+						} else {
+							if (registry != null) {
+								Item registryItem = ForgeRegistries.ITEMS.getValue(registry);
 								if (registryItem != null && registryItem.getItem() == i) {
-									return Color.decode(configValue[1]);
+									return Color.decode(colorIn);
 								}
 							}
 						}
+
 					}
 				}
 			}

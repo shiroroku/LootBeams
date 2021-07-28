@@ -57,6 +57,7 @@ public class LootBeamRenderer extends RenderState {
 		float B = color.getBlue() / 255f;
 
 		stack.pushPose();
+
 		//Render main beam
 		stack.pushPose();
 		float rotation = (float) Math.floorMod(worldtime, 40L) + pticks;
@@ -79,74 +80,64 @@ public class LootBeamRenderer extends RenderState {
 		stack.popPose();
 
 		if (Configuration.RENDER_NAMETAGS.get()) {
-			renderNameTag(stack, buffer, item);
+			renderNameTag(stack, buffer, item, color);
 		}
 	}
 
-	private static void renderNameTag(MatrixStack stack, IRenderTypeBuffer buffer, ItemEntity item) {
-		ClientPlayerEntity player = Minecraft.getInstance().player;
-		boolean isLooking = isLookingAt(player, item, Configuration.NAMETAG_LOOK_SENSITIVITY.get()) && Configuration.RENDER_NAMETAGS_ONLOOK.get();
-		if (player.isCrouching() || isLooking) {
-			float scale = Configuration.NAMETAG_SCALE.get().floatValue();
-			float backgroundAlpha = Configuration.NAMETAG_BACKGROUND_ALPHA.get().floatValue();
+	private static void renderNameTag(MatrixStack stack, IRenderTypeBuffer buffer, ItemEntity item, Color color) {
+		//If player is crouching or looking at the item
+		if (Minecraft.getInstance().player.isCrouching() || isLookingAt(Minecraft.getInstance().player, item, Configuration.NAMETAG_LOOK_SENSITIVITY.get()) && Configuration.RENDER_NAMETAGS_ONLOOK.get()) {
+
 			float foregroundAlpha = Configuration.NAMETAG_TEXT_ALPHA.get().floatValue();
+			float backgroundAlpha = Configuration.NAMETAG_BACKGROUND_ALPHA.get().floatValue();
 			double yOffset = Configuration.NAMETAG_Y_OFFSET.get();
 
-			Color color = getItemColor(item);
-			int backgroundColor = new Color(color.getRed(), color.getGreen(), color.getBlue(), (int) (255 * backgroundAlpha)).getRGB();
 			int foregroundColor = new Color(color.getRed(), color.getGreen(), color.getBlue(), (int) (255 * foregroundAlpha)).getRGB();
+			int backgroundColor = new Color(color.getRed(), color.getGreen(), color.getBlue(), (int) (255 * backgroundAlpha)).getRGB();
 
 			//Render nametags at heights based on player distance
 			stack.pushPose();
 			stack.translate(0.0D, Math.min(1D, Minecraft.getInstance().player.distanceToSqr(item) * 0.025D) + yOffset, 0.0D);
 			stack.mulPose(Minecraft.getInstance().getEntityRenderDispatcher().cameraOrientation());
-			stack.scale(-0.02F * scale, -0.02F * scale, 0.02F * scale);
+
+			float nametagScale = Configuration.NAMETAG_SCALE.get().floatValue();
+			stack.scale(-0.02F * nametagScale, -0.02F * nametagScale, 0.02F * nametagScale);
 
 			FontRenderer fontrenderer = Minecraft.getInstance().font;
-			ITextComponent text = item.getItem().getHoverName();
-
-			boolean override = item.getItem().hasTag() && item.getItem().getTag().contains("lootbeams.color");
-
-			//fontrenderer.drawInBatch(text.getString(), (float) (-fontrenderer.width(text) / 2), 0f, foregroundColor, false, stack.last().pose(), buffer, false, backgroundColor, 15728864);
-
-			String s = StringUtils.stripColor(text.getString());
-			RenderText(fontrenderer, stack, buffer, s, foregroundColor, backgroundColor, backgroundAlpha);
+			RenderText(fontrenderer, stack, buffer, StringUtils.stripColor(item.getItem().getHoverName().getString()), foregroundColor, backgroundColor, backgroundAlpha);
 
 			//Smaller tags
 			stack.translate(0.0D, 10, 0.0D);
 			stack.scale(0.75f, 0.75f, 0.75f);
 			boolean textDrawn = false;
+
+			//Render dmcloot rarity small tags
 			if (Configuration.DMCLOOT_COMPAT_RARITY.get() && ModList.get().isLoaded("dmcloot")) {
-				//Render dmcloot rarity small tags
 				if (item.getItem().hasTag() && item.getItem().getTag().contains("dmcloot.rarity")) {
 					TranslationTextComponent translatedRarity = new TranslationTextComponent("rarity.dmcloot." + item.getItem().getTag().getString("dmcloot.rarity"));
 					RenderText(fontrenderer, stack, buffer, translatedRarity.getString(), customDarker(new Color(foregroundColor)).getRGB(), backgroundColor, backgroundAlpha);
-					//fontrenderer.drawInBatch(translatedRarity.getString(), (float) (-fontrenderer.width(translatedRarity) / 2), 0f, customDarker(new Color(foregroundColor)).getRGB(), false, stack.last().pose(), buffer, false, backgroundColor, 15728864);
 					textDrawn = true;
 				}
 			}
+
+			//Render small tags based on custom_rarities config
 			if (!textDrawn) {
-				//Render small tags based on custom_rarities config
 				List<ITextComponent> tooltip = item.getItem().getTooltipLines(null, ITooltipFlag.TooltipFlags.NORMAL);
 				if (tooltip.size() > 1) {
 					ITextComponent tooltipRarity = tooltip.get(1);
 					for (String customrarity : Configuration.CUSTOM_RARITIES.get()) {
 						if (tooltipRarity.getString().equals(customrarity)) {
-							if (override) {
-								RenderText(fontrenderer, stack, buffer, tooltipRarity.getString(), foregroundColor, backgroundColor, backgroundAlpha);
-								//fontrenderer.drawInBatch(tooltipRarity.getString(), (float) (-fontrenderer.width(tooltipRarity) / 2), 0f, foregroundColor, false, stack.last().pose(), buffer, false, backgroundColor, 15728864);
+
+							Color rarityColor;
+							if (tooltip.get(1).getStyle().getColor() == null) {
+								rarityColor = new Color(foregroundColor);
 							} else {
-								Color rarityColor;
-								if (tooltip.get(1).getStyle().getColor() == null) {
-									rarityColor = new Color(foregroundColor);
-								} else {
-									rarityColor = new Color(tooltip.get(1).getStyle().getColor().getValue());
-								}
-								foregroundColor = new Color(rarityColor.getRed(), rarityColor.getGreen(), rarityColor.getBlue(), (int) (255 * foregroundAlpha)).getRGB();
-								backgroundColor = new Color(rarityColor.getRed(), rarityColor.getGreen(), rarityColor.getBlue(), (int) (255 * backgroundAlpha)).getRGB();
-								//fontrenderer.drawInBatch(tooltipRarity, (float) (-fontrenderer.width(tooltipRarity) / 2), 0f, foregroundColor, false, stack.last().pose(), buffer, false, backgroundColor, 15728864);
-								RenderText(fontrenderer, stack, buffer, tooltipRarity.getString(), foregroundColor, backgroundColor, backgroundAlpha);
+								rarityColor = new Color(tooltip.get(1).getStyle().getColor().getValue());
 							}
+							foregroundColor = new Color(rarityColor.getRed(), rarityColor.getGreen(), rarityColor.getBlue(), (int) (255 * foregroundAlpha)).getRGB();
+							backgroundColor = new Color(rarityColor.getRed(), rarityColor.getGreen(), rarityColor.getBlue(), (int) (255 * backgroundAlpha)).getRGB();
+
+							RenderText(fontrenderer, stack, buffer, tooltipRarity.getString(), foregroundColor, backgroundColor, backgroundAlpha);
 						}
 					}
 				}
@@ -233,7 +224,7 @@ public class LootBeamRenderer extends RenderState {
 
 	private static RenderType createRenderType() {
 		RenderType.State state = RenderType.State.builder().setTextureState(new RenderState.TextureState(LOOT_BEAM_TEXTURE, false, false)).setTransparencyState(TRANSLUCENT_TRANSPARENCY).setWriteMaskState(RenderState.COLOR_WRITE).setFogState(NO_FOG).createCompositeState(false);
-		return RenderType.create("rpgloot_loot_beam", DefaultVertexFormats.BLOCK, 7, 256, false, true, state);
+		return RenderType.create("loot_beam", DefaultVertexFormats.BLOCK, 7, 256, false, true, state);
 	}
 
 	/**
