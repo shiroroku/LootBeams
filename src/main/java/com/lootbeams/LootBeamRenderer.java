@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StringUtils;
 import net.minecraft.util.math.vector.Matrix3f;
@@ -34,7 +35,7 @@ public class LootBeamRenderer extends RenderState {
 
 	/**
 	 * ISSUES:
-	 * Beam renders behind things like chests/clouds/water/beds.
+	 * Beam renders behind things like chests/clouds/water/beds/entities.
 	 */
 
 	private static final ResourceLocation LOOT_BEAM_TEXTURE = new ResourceLocation(LootBeams.MODID, "textures/entity/loot_beam.png");
@@ -104,7 +105,7 @@ public class LootBeamRenderer extends RenderState {
 			stack.scale(-0.02F * nametagScale, -0.02F * nametagScale, 0.02F * nametagScale);
 
 			FontRenderer fontrenderer = Minecraft.getInstance().font;
-			RenderText(fontrenderer, stack, buffer, StringUtils.stripColor(item.getItem().getHoverName().getString()), foregroundColor, backgroundColor, backgroundAlpha);
+			RenderText(fontrenderer, stack, buffer, StringUtils.stripColor(item.getItem().getHoverName().getString()), item, foregroundColor, backgroundColor, backgroundAlpha);
 
 			//Smaller tags
 			stack.translate(0.0D, 10, 0.0D);
@@ -115,7 +116,7 @@ public class LootBeamRenderer extends RenderState {
 			if (Configuration.DMCLOOT_COMPAT_RARITY.get() && ModList.get().isLoaded("dmcloot")) {
 				if (item.getItem().hasTag() && item.getItem().getTag().contains("dmcloot.rarity")) {
 					TranslationTextComponent translatedRarity = new TranslationTextComponent("rarity.dmcloot." + item.getItem().getTag().getString("dmcloot.rarity"));
-					RenderText(fontrenderer, stack, buffer, translatedRarity.getString(), customDarker(new Color(foregroundColor)).getRGB(), backgroundColor, backgroundAlpha);
+					RenderText(fontrenderer, stack, buffer, translatedRarity.getString(), item, customDarker(new Color(foregroundColor)).getRGB(), backgroundColor, backgroundAlpha);
 					textDrawn = true;
 				}
 			}
@@ -137,7 +138,7 @@ public class LootBeamRenderer extends RenderState {
 							foregroundColor = new Color(rarityColor.getRed(), rarityColor.getGreen(), rarityColor.getBlue(), (int) (255 * foregroundAlpha)).getRGB();
 							backgroundColor = new Color(rarityColor.getRed(), rarityColor.getGreen(), rarityColor.getBlue(), (int) (255 * backgroundAlpha)).getRGB();
 
-							RenderText(fontrenderer, stack, buffer, tooltipRarity.getString(), foregroundColor, backgroundColor, backgroundAlpha);
+							RenderText(fontrenderer, stack, buffer, tooltipRarity.getString(), item, foregroundColor, backgroundColor, backgroundAlpha);
 						}
 					}
 				}
@@ -146,7 +147,17 @@ public class LootBeamRenderer extends RenderState {
 		}
 	}
 
-	private static void RenderText(FontRenderer fontRenderer, MatrixStack stack, IRenderTypeBuffer buffer, String text, int foregroundColor, int backgroundColor, float backgroundAlpha) {
+	private static void RenderText(FontRenderer fontRenderer, MatrixStack stack, IRenderTypeBuffer buffer, String text, ItemEntity item, int foregroundColor, int backgroundColor, float backgroundAlpha) {
+		if (Configuration.RENDER_STACKCOUNT.get()) {
+			int count = item.getItem().getCount();
+			if (count > 1) {
+				text = text + " x" + count;
+			}
+		}
+
+		//Move closer to the player so we dont render in beam
+		stack.translate(0, 0, -10);
+
 		if (Configuration.BORDERS.get()) {
 			float w = -fontRenderer.width(text) / 2f;
 			int bg = new Color(0, 0, 0, (int) (255 * backgroundAlpha)).getRGB();

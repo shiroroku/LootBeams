@@ -31,6 +31,7 @@ public class Configuration {
 	public static ForgeConfigSpec.BooleanValue BORDERS;
 	public static ForgeConfigSpec.BooleanValue RENDER_NAMETAGS;
 	public static ForgeConfigSpec.BooleanValue RENDER_NAMETAGS_ONLOOK;
+	public static ForgeConfigSpec.BooleanValue RENDER_STACKCOUNT;
 	public static ForgeConfigSpec.DoubleValue NAMETAG_LOOK_SENSITIVITY;
 	public static ForgeConfigSpec.DoubleValue NAMETAG_TEXT_ALPHA;
 	public static ForgeConfigSpec.DoubleValue NAMETAG_BACKGROUND_ALPHA;
@@ -62,6 +63,7 @@ public class Configuration {
 		BORDERS = clientBuilder.comment("Render nametags as bordered. Set to false for flat nametag with background.").define("borders", true);
 		RENDER_NAMETAGS = clientBuilder.comment("If Item nametags should be rendered.").define("render_nametags", true);
 		RENDER_NAMETAGS_ONLOOK = clientBuilder.comment("If Item nametags should be rendered when looking at items.").define("render_nametags_onlook", true);
+		RENDER_STACKCOUNT = clientBuilder.comment("If the count of item's should also be shown in the nametag.").define("render_stackcount", true);
 		NAMETAG_LOOK_SENSITIVITY = clientBuilder.comment("How close the player has to look at the item to render the nametag.").defineInRange("nametag_look_sensitivity", 0.018D, 0D, 5D);
 		NAMETAG_TEXT_ALPHA = clientBuilder.comment("Transparency of the nametag text.").defineInRange("nametag_text_alpha", 1D, 0D, 1D);
 		NAMETAG_BACKGROUND_ALPHA = clientBuilder.comment("Transparency of the nametag background/border.").defineInRange("nametag_background_alpha", 0.5D, 0D, 1D);
