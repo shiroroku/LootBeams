@@ -105,7 +105,14 @@ public class LootBeamRenderer extends RenderState {
 			stack.scale(-0.02F * nametagScale, -0.02F * nametagScale, 0.02F * nametagScale);
 
 			FontRenderer fontrenderer = Minecraft.getInstance().font;
-			RenderText(fontrenderer, stack, buffer, StringUtils.stripColor(item.getItem().getHoverName().getString()), item, foregroundColor, backgroundColor, backgroundAlpha);
+			String itemName = StringUtils.stripColor(item.getItem().getHoverName().getString());
+			if (Configuration.RENDER_STACKCOUNT.get()) {
+				int count = item.getItem().getCount();
+				if (count > 1) {
+					itemName = itemName + " x" + count;
+				}
+			}
+			RenderText(fontrenderer, stack, buffer, itemName, item, foregroundColor, backgroundColor, backgroundAlpha);
 
 			//Smaller tags
 			stack.translate(0.0D, 10, 0.0D);
@@ -148,13 +155,6 @@ public class LootBeamRenderer extends RenderState {
 	}
 
 	private static void RenderText(FontRenderer fontRenderer, MatrixStack stack, IRenderTypeBuffer buffer, String text, ItemEntity item, int foregroundColor, int backgroundColor, float backgroundAlpha) {
-		if (Configuration.RENDER_STACKCOUNT.get()) {
-			int count = item.getItem().getCount();
-			if (count > 1) {
-				text = text + " x" + count;
-			}
-		}
-
 		//Move closer to the player so we dont render in beam
 		stack.translate(0, 0, -10);
 
