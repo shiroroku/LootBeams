@@ -9,6 +9,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Mod.EventBusSubscriber
 public class Configuration {
@@ -81,27 +82,24 @@ public class Configuration {
 	public static Color getColorFromItemOverrides(Item i) {
 		List<String> overrides = COLOR_OVERRIDES.get();
 		if (overrides.size() > 0) {
-			for (String unparsed : overrides) {
-				if (!unparsed.isEmpty()) {
-					String[] configValue = unparsed.split("=");
-					if (configValue.length == 2) {
-						String nameIn = configValue[0];
-						String colorIn = configValue[1];
-						ResourceLocation registry = ResourceLocation.tryParse(nameIn.replace("#", ""));
+			for (String unparsed : overrides.stream().filter((s) -> (!s.isEmpty())).collect(Collectors.toList())) {
+				String[] configValue = unparsed.split("=");
+				if (configValue.length == 2) {
+					String nameIn = configValue[0];
+					String colorIn = configValue[1];
+					ResourceLocation registry = ResourceLocation.tryParse(nameIn.replace("#", ""));
 
-						if (nameIn.startsWith("#")) {
-							if (i.getTags().contains(registry)) {
+					if (nameIn.startsWith("#")) {
+						if (i.getTags().contains(registry)) {
+							return Color.decode(colorIn);
+						}
+					} else {
+						if (registry != null) {
+							Item registryItem = ForgeRegistries.ITEMS.getValue(registry);
+							if (registryItem != null && registryItem.getItem() == i) {
 								return Color.decode(colorIn);
 							}
-						} else {
-							if (registry != null) {
-								Item registryItem = ForgeRegistries.ITEMS.getValue(registry);
-								if (registryItem != null && registryItem.getItem() == i) {
-									return Color.decode(colorIn);
-								}
-							}
 						}
-
 					}
 				}
 			}

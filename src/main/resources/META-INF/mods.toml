@@ -6,6 +6,7 @@ displayName = "LootBeams"
 modId = "lootbeams"
 version = "1.16.5"
 logoFile = "banner.png"
+displayURL = "https://www.curseforge.com/minecraft/mc-mods/loot-beams"
 authors = "shiroroku(elise)"
 credits = "amo"
 description = '''

@@ -12,6 +12,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Mod.EventBusSubscriber(modid = LootBeams.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class ClientSetup {
@@ -23,19 +24,13 @@ public class ClientSetup {
 	public static void onRenderNameplate(RenderNameplateEvent event) {
 		if (event.getEntity() instanceof ItemEntity) {
 			ItemEntity itemEntity = (ItemEntity) event.getEntity();
-
 			boolean shouldRender = false;
-			boolean renderAllItems = Configuration.ALL_ITEMS.get();
-			boolean renderEquipment = Configuration.ONLY_EQUIPMENT.get();
-			List<String> whitelist = Configuration.WHITELIST.get();
-			List<String> blacklist = Configuration.BLACKLIST.get();
 
-			if (renderAllItems) {
+			if (Configuration.ALL_ITEMS.get()) {
 				shouldRender = true;
 			} else {
-				if (renderEquipment) {
+				if (Configuration.ONLY_EQUIPMENT.get()) {
 					List<Class<? extends Item>> equipmentClasses = Arrays.asList(SwordItem.class, ToolItem.class, ArmorItem.class, ShieldItem.class, BowItem.class, CrossbowItem.class, TridentItem.class, ArrowItem.class, FishingRodItem.class);
-
 					for (Class<? extends Item> item : equipmentClasses) {
 						if (item.isAssignableFrom(itemEntity.getItem().getItem().getClass())) {
 							shouldRender = true;
@@ -44,12 +39,11 @@ public class ClientSetup {
 					}
 				}
 
-				if (isItemInRegistryList(whitelist, itemEntity.getItem().getItem())) {
+				if (isItemInRegistryList(Configuration.WHITELIST.get(), itemEntity.getItem().getItem())) {
 					shouldRender = true;
 				}
 			}
-
-			if (isItemInRegistryList(blacklist, itemEntity.getItem().getItem())) {
+			if (isItemInRegistryList(Configuration.BLACKLIST.get(), itemEntity.getItem().getItem())) {
 				shouldRender = false;
 			}
 
@@ -64,12 +58,10 @@ public class ClientSetup {
 	 */
 	private static boolean isItemInRegistryList(List<String> registryNames, Item item) {
 		if (registryNames.size() > 0) {
-			for (String id : registryNames) {
-				if (!id.isEmpty()) {
-					ResourceLocation itemResource = ResourceLocation.tryParse(id);
-					if (itemResource != null && ForgeRegistries.ITEMS.getValue(itemResource).getItem() == item.getItem()) {
-						return true;
-					}
+			for (String id : registryNames.stream().filter((s) -> (!s.isEmpty())).collect(Collectors.toList())) {
+				ResourceLocation itemResource = ResourceLocation.tryParse(id);
+				if (itemResource != null && ForgeRegistries.ITEMS.getValue(itemResource).getItem() == item.getItem()) {
+					return true;
 				}
 			}
 		}
