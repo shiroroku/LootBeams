@@ -1,5 +1,6 @@
 package com.lootbeams;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.*;
 import net.minecraft.util.ResourceLocation;
@@ -24,8 +25,11 @@ public class ClientSetup {
 	public static void onRenderNameplate(RenderNameplateEvent event) {
 		if (event.getEntity() instanceof ItemEntity) {
 			ItemEntity itemEntity = (ItemEntity) event.getEntity();
-			boolean shouldRender = false;
+			if (Minecraft.getInstance().player.distanceToSqr(itemEntity) > Configuration.RENDER_DISTANCE.get() * Configuration.RENDER_DISTANCE.get()) {
+				return;
+			}
 
+			boolean shouldRender = false;
 			if (Configuration.ALL_ITEMS.get()) {
 				shouldRender = true;
 			} else {
