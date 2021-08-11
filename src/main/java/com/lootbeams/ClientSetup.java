@@ -43,6 +43,10 @@ public class ClientSetup {
 					}
 				}
 
+				if (Configuration.ONLY_RARE.get()) {
+					shouldRender = itemEntity.getItem().getRarity() != Rarity.COMMON;
+				}
+
 				if (isItemInRegistryList(Configuration.WHITELIST.get(), itemEntity.getItem().getItem())) {
 					shouldRender = true;
 				}
@@ -63,6 +67,11 @@ public class ClientSetup {
 	private static boolean isItemInRegistryList(List<String> registryNames, Item item) {
 		if (registryNames.size() > 0) {
 			for (String id : registryNames.stream().filter((s) -> (!s.isEmpty())).collect(Collectors.toList())) {
+				if (!id.contains(":")) {
+					if (item.getRegistryName().getNamespace().equals(id)) {
+						return true;
+					}
+				}
 				ResourceLocation itemResource = ResourceLocation.tryParse(id);
 				if (itemResource != null && ForgeRegistries.ITEMS.getValue(itemResource).getItem() == item.getItem()) {
 					return true;

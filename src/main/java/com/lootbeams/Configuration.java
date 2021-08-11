@@ -18,6 +18,7 @@ public class Configuration {
 
 	public static ForgeConfigSpec.BooleanValue ALL_ITEMS;
 	public static ForgeConfigSpec.BooleanValue ONLY_EQUIPMENT;
+	public static ForgeConfigSpec.BooleanValue ONLY_RARE;
 	public static ForgeConfigSpec.ConfigValue<List<String>> WHITELIST;
 	public static ForgeConfigSpec.ConfigValue<List<String>> BLACKLIST;
 	public static ForgeConfigSpec.ConfigValue<List<String>> COLOR_OVERRIDES;
@@ -53,13 +54,14 @@ public class Configuration {
 		BEAM_Y_OFFSET = clientBuilder.comment("The Y-offset of the loot beam.").defineInRange("beam_y_offset", 0D, -30D, 30D);
 		BEAM_ALPHA = clientBuilder.comment("Transparency of the Loot Beam.").defineInRange("beam_alpha", 0.85D, 0D, 1D);
 		RENDER_DISTANCE = clientBuilder.comment("How close the player has to be to see the beam. (note: ItemEntities stop rendering at 24 blocks, so that is the limit for beams)").defineInRange("render_distance", 24D, 0D, 24D);
-		COLOR_OVERRIDES = clientBuilder.comment("Overrides an item's beam color with hex color. Must follow the specific format: (registryname=hexcolor) Or (#tagname=hexcolor). Example: \"minecraft:stone=0xFFFFFF\".").define("color_overrides", new ArrayList<>());
+		COLOR_OVERRIDES = clientBuilder.comment("Overrides an item's beam color with hex color. Must follow the specific format: (registryname=hexcolor) Or (#tagname=hexcolor). Example: \"minecraft:stone=0xFFFFFF\". This also accepts modids.").define("color_overrides", new ArrayList<>());
 
 		clientBuilder.comment("Item Config").push("Items");
-		ALL_ITEMS = clientBuilder.comment("If all Items Loot Beams should be rendered. Has priority over only_equipment.").define("all_items", true);
+		ALL_ITEMS = clientBuilder.comment("If all Items Loot Beams should be rendered. Has priority over only_equipment and only_rare.").define("all_items", true);
+		ONLY_RARE = clientBuilder.comment("If Loot Beams should only be rendered on items with rarity.").define("only_rare", false);
 		ONLY_EQUIPMENT = clientBuilder.comment("If Loot Beams should only be rendered on equipment. (Equipment includes: Swords, Tools, Armor, Shields, Bows, Crossbows, Tridents, Arrows, and Fishing Rods)").define("only_equipment", false);
-		WHITELIST = clientBuilder.comment("Registry names of items that Loot Beams should render on. Example: \"minecraft:stone\", \"minecraft:iron_ingot\"").define("whitelist", new ArrayList<>());
-		BLACKLIST = clientBuilder.comment("Registry names of items that Loot Beams should NOT render on. This has priority over everything.").define("blacklist", new ArrayList<>());
+		WHITELIST = clientBuilder.comment("Registry names of items that Loot Beams should render on. Example: \"minecraft:stone\", \"minecraft:iron_ingot\", You can also specify modids for a whole mod's items.").define("whitelist", new ArrayList<>());
+		BLACKLIST = clientBuilder.comment("Registry names of items that Loot Beams should NOT render on. This has priority over everything. You can also specify modids for a whole mod's items.").define("blacklist", new ArrayList<>());
 		clientBuilder.pop();
 
 		clientBuilder.comment("Item nametags").push("Nametags");
@@ -88,20 +90,37 @@ public class Configuration {
 				String[] configValue = unparsed.split("=");
 				if (configValue.length == 2) {
 					String nameIn = configValue[0];
-					String colorIn = configValue[1];
 					ResourceLocation registry = ResourceLocation.tryParse(nameIn.replace("#", ""));
+					Color colorIn = null;
+					try {
+						colorIn = Color.decode(configValue[1]);
+					} catch (Exception e) {
+						LootBeams.LOGGER.error(String.format("Color overrides error! \"%s\" is not a valid hex color for \"%s\"", configValue[1], nameIn));
+						return null;
+					}
 
-					if (nameIn.startsWith("#")) {
-						if (i.getTags().contains(registry)) {
-							return Color.decode(colorIn);
+					//Modid
+					if (!nameIn.contains(":")) {
+						if (i.getRegistryName().getNamespace().equals(nameIn)) {
+							return colorIn;
 						}
-					} else {
-						if (registry != null) {
-							Item registryItem = ForgeRegistries.ITEMS.getValue(registry);
-							if (registryItem != null && registryItem.getItem() == i) {
-								return Color.decode(colorIn);
+
+					}
+
+					if (registry != null) {
+						//Tag
+						if (nameIn.startsWith("#")) {
+							if (i.getTags().contains(registry)) {
+								return colorIn;
 							}
 						}
+
+						//Item
+						Item registryItem = ForgeRegistries.ITEMS.getValue(registry);
+						if (registryItem != null && registryItem.getItem() == i) {
+							return colorIn;
+						}
+
 					}
 				}
 			}
