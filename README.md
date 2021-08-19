@@ -1,4 +1,4 @@
-# LootBeams
+![CurseForge](https://img.shields.io/badge/CurseForge-Loot_Beams-orange?link=https://www.curseforge.com/minecraft/mc-mods/loot-beams)
+![Discord](https://img.shields.io/discord/866808032699744306?color=5865F2&label=Discord)
+# Loot Beams
 A 1.16.5 Minecraft mod that adds colorful and customizable loot beams to dropped items!
-
-https://www.curseforge.com/minecraft/mc-mods/loot-beams
