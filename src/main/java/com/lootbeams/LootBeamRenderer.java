@@ -122,30 +122,32 @@ public class LootBeamRenderer extends RenderState {
 			stack.scale(0.75f, 0.75f, 0.75f);
 			boolean textDrawn = false;
 
-			//Render dmcloot rarity small tags
-			if (Configuration.DMCLOOT_COMPAT_RARITY.get() && ModList.get().isLoaded("dmcloot")) {
-				if (item.getItem().hasTag() && item.getItem().getTag().contains("dmcloot.rarity")) {
-					TranslationTextComponent translatedRarity = new TranslationTextComponent("rarity.dmcloot." + item.getItem().getTag().getString("dmcloot.rarity"));
-					RenderText(fontrenderer, stack, buffer, translatedRarity.getString(), customDarker(new Color(foregroundColor)).getRGB(), backgroundColor, backgroundAlpha);
-					textDrawn = true;
-				}
-			}
-
 			//Render small tags based on custom_rarities config
-			if (!textDrawn) {
-				List<ITextComponent> tooltip = item.getItem().getTooltipLines(null, ITooltipFlag.TooltipFlags.NORMAL);
-				if (tooltip.size() >= 2) {
-					ITextComponent tooltipRarity = tooltip.get(1);
-					if (Configuration.CUSTOM_RARITIES.get().contains(tooltipRarity.getString())) {
-						Color rarityColor = tooltipRarity.getStyle().getColor() == null ? new Color(foregroundColor) : new Color(tooltipRarity.getStyle().getColor().getValue());
+			List<ITextComponent> tooltip = item.getItem().getTooltipLines(null, ITooltipFlag.TooltipFlags.NORMAL);
+			if (tooltip.size() >= 2) {
+				ITextComponent tooltipRarity = tooltip.get(1);
 
-						foregroundColor = new Color(rarityColor.getRed(), rarityColor.getGreen(), rarityColor.getBlue(), (int) (255 * foregroundAlpha)).getRGB();
-						backgroundColor = new Color(rarityColor.getRed(), rarityColor.getGreen(), rarityColor.getBlue(), (int) (255 * backgroundAlpha)).getRGB();
-
-						RenderText(fontrenderer, stack, buffer, tooltipRarity.getString(), foregroundColor, backgroundColor, backgroundAlpha);
+				//Render dmcloot rarity small tags
+				if (Configuration.DMCLOOT_COMPAT_RARITY.get() && ModList.get().isLoaded("dmcloot")) {
+					if (item.getItem().hasTag() && item.getItem().getTag().contains("dmcloot.rarity")) {
+						Color rarityColor = Configuration.WHITE_RARITIES.get() ? new Color(255, 255, 255) : getRawColor(tooltipRarity);
+						TranslationTextComponent translatedRarity = new TranslationTextComponent("rarity.dmcloot." + item.getItem().getTag().getString("dmcloot.rarity"));
+						RenderText(fontrenderer, stack, buffer, translatedRarity.getString(), rarityColor.getRGB(), backgroundColor, backgroundAlpha);
+						textDrawn = true;
 					}
 				}
+
+				if (!textDrawn && Configuration.CUSTOM_RARITIES.get().contains(tooltipRarity.getString())) {
+					//Color rarityColor = tooltipRarity.getStyle().getColor() == null ? new Color(foregroundColor) : new Color(tooltipRarity.getStyle().getColor().getValue());
+					Color rarityColor = Configuration.WHITE_RARITIES.get() ? new Color(255, 255, 255) : getRawColor(tooltipRarity);
+
+					foregroundColor = new Color(rarityColor.getRed(), rarityColor.getGreen(), rarityColor.getBlue(), (int) (255 * foregroundAlpha)).getRGB();
+					backgroundColor = new Color(rarityColor.getRed(), rarityColor.getGreen(), rarityColor.getBlue(), (int) (255 * backgroundAlpha)).getRGB();
+
+					RenderText(fontrenderer, stack, buffer, tooltipRarity.getString(), foregroundColor, backgroundColor, backgroundAlpha);
+				}
 			}
+
 			stack.popPose();
 		}
 	}
@@ -167,13 +169,6 @@ public class LootBeamRenderer extends RenderState {
 	}
 
 	/**
-	 * Darkens the color by 10%
-	 */
-	private static Color customDarker(Color color) {
-		return new Color(Math.max((int) (color.getRed() * 0.9f), 0), Math.max((int) (color.getGreen() * 0.9f), 0), Math.max((int) (color.getBlue() * 0.9f), 0), color.getAlpha());
-	}
-
-	/**
 	 * Returns the color from the item's name, rarity, tag, or override.
 	 */
 	private static Color getItemColor(ItemEntity item) {
@@ -187,18 +182,7 @@ public class LootBeamRenderer extends RenderState {
 		}
 
 		if (Configuration.RENDER_NAME_COLOR.get()) {
-			ITextComponent text = item.getItem().getHoverName();
-			List<Style> list = Lists.newArrayList();
-			text.visit((acceptor, styleIn) -> {
-				TextProcessing.iterateFormatted(styleIn, acceptor, (string, style, consumer) -> {
-					list.add(style);
-					return true;
-				});
-				return Optional.empty();
-			}, Style.EMPTY);
-			if (list.get(0).getColor() != null) {
-				return new Color(list.get(0).getColor().getValue());
-			}
+			return getRawColor(item.getItem().getHoverName());
 		}
 
 		if (Configuration.RENDER_RARITY_COLOR.get()) {
@@ -206,6 +190,24 @@ public class LootBeamRenderer extends RenderState {
 		} else {
 			return Color.WHITE;
 		}
+	}
+
+	/**
+	 * Gets color from the first letter in the text component.
+	 */
+	private static Color getRawColor(ITextComponent text) {
+		List<Style> list = Lists.newArrayList();
+		text.visit((acceptor, styleIn) -> {
+			TextProcessing.iterateFormatted(styleIn, acceptor, (string, style, consumer) -> {
+				list.add(style);
+				return true;
+			});
+			return Optional.empty();
+		}, Style.EMPTY);
+		if (list.get(0).getColor() != null) {
+			return new Color(list.get(0).getColor().getValue());
+		}
+		return new Color(255, 255, 255);
 	}
 
 	private static void renderPart(MatrixStack stack, IVertexBuilder builder, float red, float green, float blue, float alpha, float height, float radius_1, float radius_2, float radius_3, float radius_4, float radius_5, float radius_6, float radius_7, float radius_8) {

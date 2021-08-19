@@ -42,6 +42,7 @@ public class Configuration {
 	public static ForgeConfigSpec.DoubleValue NAMETAG_Y_OFFSET;
 	public static ForgeConfigSpec.BooleanValue DMCLOOT_COMPAT_RARITY;
 	public static ForgeConfigSpec.ConfigValue<List<String>> CUSTOM_RARITIES;
+	public static ForgeConfigSpec.BooleanValue WHITE_RARITIES;
 
 	static {
 		ForgeConfigSpec.Builder clientBuilder = new ForgeConfigSpec.Builder();
@@ -76,6 +77,7 @@ public class Configuration {
 		NAMETAG_Y_OFFSET = clientBuilder.comment("The Y-offset of the nametag.").defineInRange("nametag_y_offset", 0.75D, -30D, 30D);
 		DMCLOOT_COMPAT_RARITY = clientBuilder.comment("If a smaller tag should be rendered under with DMCLoot rarities.").define("dmcloot_compat_rarity", true);
 		CUSTOM_RARITIES = clientBuilder.comment("Define what the smaller tag should render on. Example: \"Exotic\", \"Ancient\". The string supplied has to be the tooltip line below the name. This is really only used for modpacks.").define("custom_rarities", new ArrayList<>());
+		WHITE_RARITIES = clientBuilder.comment("If rarities should ignore color and render as white (This is really only used for modpacks)").define("white_rarities", false);
 		clientBuilder.pop();
 
 		clientBuilder.pop();
