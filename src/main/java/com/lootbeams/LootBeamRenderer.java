@@ -56,6 +56,8 @@ public class LootBeamRenderer extends RenderState {
 		float G = color.getGreen() / 255f;
 		float B = color.getBlue() / 255f;
 
+		//I will rewrite the beam rendering code soon! I promise!
+
 		stack.pushPose();
 
 		//Render main beam
@@ -77,6 +79,7 @@ public class LootBeamRenderer extends RenderState {
 		renderPart(stack, buffer.getBuffer(LOOT_BEAM_RENDERTYPE), R, G, B, beamAlpha * 0.4f, beamHeight, -glowRadius, -glowRadius, glowRadius, -glowRadius, -beamRadius, glowRadius, glowRadius, glowRadius);
 		stack.mulPose(Vector3f.XP.rotationDegrees(-180));
 		renderPart(stack, buffer.getBuffer(LOOT_BEAM_RENDERTYPE), R, G, B, beamAlpha * 0.4f, beamHeight, -glowRadius, -glowRadius, glowRadius, -glowRadius, -beamRadius, glowRadius, glowRadius, glowRadius);
+
 		stack.popPose();
 
 		if (Configuration.RENDER_NAMETAGS.get()) {
@@ -91,18 +94,19 @@ public class LootBeamRenderer extends RenderState {
 			float foregroundAlpha = Configuration.NAMETAG_TEXT_ALPHA.get().floatValue();
 			float backgroundAlpha = Configuration.NAMETAG_BACKGROUND_ALPHA.get().floatValue();
 			double yOffset = Configuration.NAMETAG_Y_OFFSET.get();
-
 			int foregroundColor = new Color(color.getRed(), color.getGreen(), color.getBlue(), (int) (255 * foregroundAlpha)).getRGB();
 			int backgroundColor = new Color(color.getRed(), color.getGreen(), color.getBlue(), (int) (255 * backgroundAlpha)).getRGB();
 
-			//Render nametags at heights based on player distance
 			stack.pushPose();
+
+			//Render nametags at heights based on player distance
 			stack.translate(0.0D, Math.min(1D, Minecraft.getInstance().player.distanceToSqr(item) * 0.025D) + yOffset, 0.0D);
 			stack.mulPose(Minecraft.getInstance().getEntityRenderDispatcher().cameraOrientation());
 
 			float nametagScale = Configuration.NAMETAG_SCALE.get().floatValue();
 			stack.scale(-0.02F * nametagScale, -0.02F * nametagScale, 0.02F * nametagScale);
 
+			//Render stack counts on nametag
 			FontRenderer fontrenderer = Minecraft.getInstance().font;
 			String itemName = StringUtils.stripColor(item.getItem().getHoverName().getString());
 			if (Configuration.RENDER_STACKCOUNT.get()) {
@@ -112,17 +116,14 @@ public class LootBeamRenderer extends RenderState {
 				}
 			}
 
-			//Move closer to the player so we dont render in beam
+			//Move closer to the player so we dont render in beam, and render the tag
 			stack.translate(0, 0, -10);
-
 			RenderText(fontrenderer, stack, buffer, itemName, foregroundColor, backgroundColor, backgroundAlpha);
 
-			//Smaller tags
+			//Render small tags
 			stack.translate(0.0D, 10, 0.0D);
 			stack.scale(0.75f, 0.75f, 0.75f);
 			boolean textDrawn = false;
-
-			//Render small tags based on custom_rarities config
 			List<ITextComponent> tooltip = item.getItem().getTooltipLines(null, ITooltipFlag.TooltipFlags.NORMAL);
 			if (tooltip.size() >= 2) {
 				ITextComponent tooltipRarity = tooltip.get(1);
@@ -130,20 +131,18 @@ public class LootBeamRenderer extends RenderState {
 				//Render dmcloot rarity small tags
 				if (Configuration.DMCLOOT_COMPAT_RARITY.get() && ModList.get().isLoaded("dmcloot")) {
 					if (item.getItem().hasTag() && item.getItem().getTag().contains("dmcloot.rarity")) {
-						Color rarityColor = Configuration.WHITE_RARITIES.get() ? new Color(255, 255, 255) : getRawColor(tooltipRarity);
+						Color rarityColor = Configuration.WHITE_RARITIES.get() ? Color.WHITE : getRawColor(tooltipRarity);
 						TranslationTextComponent translatedRarity = new TranslationTextComponent("rarity.dmcloot." + item.getItem().getTag().getString("dmcloot.rarity"));
 						RenderText(fontrenderer, stack, buffer, translatedRarity.getString(), rarityColor.getRGB(), backgroundColor, backgroundAlpha);
 						textDrawn = true;
 					}
 				}
 
+				//Render custom rarities
 				if (!textDrawn && Configuration.CUSTOM_RARITIES.get().contains(tooltipRarity.getString())) {
-					//Color rarityColor = tooltipRarity.getStyle().getColor() == null ? new Color(foregroundColor) : new Color(tooltipRarity.getStyle().getColor().getValue());
-					Color rarityColor = Configuration.WHITE_RARITIES.get() ? new Color(255, 255, 255) : getRawColor(tooltipRarity);
-
+					Color rarityColor = Configuration.WHITE_RARITIES.get() ? Color.WHITE : getRawColor(tooltipRarity);
 					foregroundColor = new Color(rarityColor.getRed(), rarityColor.getGreen(), rarityColor.getBlue(), (int) (255 * foregroundAlpha)).getRGB();
 					backgroundColor = new Color(rarityColor.getRed(), rarityColor.getGreen(), rarityColor.getBlue(), (int) (255 * backgroundAlpha)).getRGB();
-
 					RenderText(fontrenderer, stack, buffer, tooltipRarity.getString(), foregroundColor, backgroundColor, backgroundAlpha);
 				}
 			}
@@ -156,10 +155,14 @@ public class LootBeamRenderer extends RenderState {
 		if (Configuration.BORDERS.get()) {
 			float w = -fontRenderer.width(text) / 2f;
 			int bg = new Color(0, 0, 0, (int) (255 * backgroundAlpha)).getRGB();
+
+			//Draws background (border) text
 			fontRenderer.draw(stack, text, w + 1f, 0, bg);
 			fontRenderer.draw(stack, text, w - 1f, 0, bg);
 			fontRenderer.draw(stack, text, w, 1f, bg);
 			fontRenderer.draw(stack, text, w, -1f, bg);
+
+			//Draws foreground text in front of border
 			stack.translate(0.0D, 0.0D, -0.01D);
 			fontRenderer.draw(stack, text, w, 0, foregroundColor);
 			stack.translate(0.0D, 0.0D, 0.01D);
@@ -172,22 +175,26 @@ public class LootBeamRenderer extends RenderState {
 	 * Returns the color from the item's name, rarity, tag, or override.
 	 */
 	private static Color getItemColor(ItemEntity item) {
+		//From Config Overrides
 		Color override = Configuration.getColorFromItemOverrides(item.getItem().getItem());
 		if (override != null) {
 			return override;
 		}
 
+		//From NBT
 		if (item.getItem().hasTag() && item.getItem().getTag().contains("lootbeams.color")) {
 			return Color.decode(item.getItem().getTag().getString("lootbeams.color"));
 		}
 
+		//From Name
 		if (Configuration.RENDER_NAME_COLOR.get()) {
 			Color nameColor = getRawColor(item.getItem().getHoverName());
-			if(!nameColor.equals(Color.WHITE)){
+			if (!nameColor.equals(Color.WHITE)) {
 				return nameColor;
 			}
 		}
 
+		//From Rarity
 		if (Configuration.RENDER_RARITY_COLOR.get()) {
 			return new Color(item.getItem().getRarity().color.getColor());
 		} else {
@@ -210,7 +217,7 @@ public class LootBeamRenderer extends RenderState {
 		if (list.get(0).getColor() != null) {
 			return new Color(list.get(0).getColor().getValue());
 		}
-		return new Color(255, 255, 255);
+		return Color.WHITE;
 	}
 
 	private static void renderPart(MatrixStack stack, IVertexBuilder builder, float red, float green, float blue, float alpha, float height, float radius_1, float radius_2, float radius_3, float radius_4, float radius_5, float radius_6, float radius_7, float radius_8) {
