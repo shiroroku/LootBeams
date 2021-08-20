@@ -182,7 +182,10 @@ public class LootBeamRenderer extends RenderState {
 		}
 
 		if (Configuration.RENDER_NAME_COLOR.get()) {
-			return getRawColor(item.getItem().getHoverName());
+			Color nameColor = getRawColor(item.getItem().getHoverName());
+			if(!nameColor.equals(Color.WHITE)){
+				return nameColor;
+			}
 		}
 
 		if (Configuration.RENDER_RARITY_COLOR.get()) {
