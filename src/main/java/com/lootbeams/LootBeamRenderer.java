@@ -195,7 +195,7 @@ public class LootBeamRenderer extends RenderState {
 		}
 
 		//From Rarity
-		if (Configuration.RENDER_RARITY_COLOR.get()) {
+		if (Configuration.RENDER_RARITY_COLOR.get() && item.getItem().getRarity().color != null) {
 			return new Color(item.getItem().getRarity().color.getColor());
 		} else {
 			return Color.WHITE;
