@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StringUtils;
 import net.minecraft.util.math.vector.Matrix3f;
@@ -175,29 +176,44 @@ public class LootBeamRenderer extends RenderState {
 	 * Returns the color from the item's name, rarity, tag, or override.
 	 */
 	private static Color getItemColor(ItemEntity item) {
-		//From Config Overrides
-		Color override = Configuration.getColorFromItemOverrides(item.getItem().getItem());
-		if (override != null) {
-			return override;
+		if(LootBeams.CRASH_BLACKLIST.contains(item.getItem())) {
+			return Color.WHITE;
 		}
 
-		//From NBT
-		if (item.getItem().hasTag() && item.getItem().getTag().contains("lootbeams.color")) {
-			return Color.decode(item.getItem().getTag().getString("lootbeams.color"));
-		}
+		try {
 
-		//From Name
-		if (Configuration.RENDER_NAME_COLOR.get()) {
-			Color nameColor = getRawColor(item.getItem().getHoverName());
-			if (!nameColor.equals(Color.WHITE)) {
-				return nameColor;
+			//From Config Overrides
+			Color override = Configuration.getColorFromItemOverrides(item.getItem().getItem());
+			if (override != null) {
+				return override;
 			}
-		}
 
-		//From Rarity
-		if (Configuration.RENDER_RARITY_COLOR.get() && item.getItem().getRarity().color != null) {
-			return new Color(item.getItem().getRarity().color.getColor());
-		} else {
+			//From NBT
+			if (item.getItem().hasTag() && item.getItem().getTag().contains("lootbeams.color")) {
+				return Color.decode(item.getItem().getTag().getString("lootbeams.color"));
+			}
+
+			//From Name
+			if (Configuration.RENDER_NAME_COLOR.get()) {
+				Color nameColor = getRawColor(item.getItem().getHoverName());
+				if (!nameColor.equals(Color.WHITE)) {
+					return nameColor;
+				}
+			}
+
+			//From Rarity
+			if (Configuration.RENDER_RARITY_COLOR.get() && item.getItem().getRarity().color != null) {
+				return new Color(item.getItem().getRarity().color.getColor());
+			} else {
+				return Color.WHITE;
+			}
+		} catch (Exception e) {
+			LootBeams.LOGGER.error("Failed to get color for ("+ item.getItem().getDisplayName() + "), added to temporary blacklist");
+			LootBeams.CRASH_BLACKLIST.add(item.getItem());
+			LootBeams.LOGGER.info("Temporary blacklist is now : " );
+			for(ItemStack s : LootBeams.CRASH_BLACKLIST){
+				LootBeams.LOGGER.info(s.getDisplayName());
+			}
 			return Color.WHITE;
 		}
 	}
