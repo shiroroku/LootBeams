@@ -1,9 +1,11 @@
 package com.lootbeams;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.*;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.*;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderNameplateEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -34,7 +36,7 @@ public class ClientSetup {
 				shouldRender = true;
 			} else {
 				if (Configuration.ONLY_EQUIPMENT.get()) {
-					List<Class<? extends Item>> equipmentClasses = Arrays.asList(SwordItem.class, ToolItem.class, ArmorItem.class, ShieldItem.class, BowItem.class, CrossbowItem.class, TridentItem.class, ArrowItem.class, FishingRodItem.class);
+					List<Class<? extends Item>> equipmentClasses = Arrays.asList(SwordItem.class, TieredItem.class, ArmorItem.class, ShieldItem.class, BowItem.class, CrossbowItem.class, TridentItem.class, ArrowItem.class, FishingRodItem.class);
 					for (Class<? extends Item> item : equipmentClasses) {
 						if (item.isAssignableFrom(itemEntity.getItem().getItem().getClass())) {
 							shouldRender = true;
@@ -56,7 +58,7 @@ public class ClientSetup {
 			}
 
 			if (shouldRender) {
-				LootBeamRenderer.renderLootBeam(event.getMatrixStack(), event.getRenderTypeBuffer(), event.getPartialTicks(), itemEntity.level.getGameTime(), itemEntity);
+				LootBeamRenderer.renderLootBeam(event.getPoseStack(), event.getMultiBufferSource(), event.getPartialTick(), itemEntity.level.getGameTime(), itemEntity);
 			}
 		}
 	}
@@ -73,7 +75,7 @@ public class ClientSetup {
 					}
 				}
 				ResourceLocation itemResource = ResourceLocation.tryParse(id);
-				if (itemResource != null && ForgeRegistries.ITEMS.getValue(itemResource).getItem() == item.getItem()) {
+				if (itemResource != null && ForgeRegistries.ITEMS.getValue(itemResource).asItem() == item.asItem()) {
 					return true;
 				}
 			}

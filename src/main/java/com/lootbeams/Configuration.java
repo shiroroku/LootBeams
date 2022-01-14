@@ -1,7 +1,7 @@
 package com.lootbeams;
 
-import net.minecraft.item.Item;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -119,7 +119,7 @@ public class Configuration {
 
 						//Item
 						Item registryItem = ForgeRegistries.ITEMS.getValue(registry);
-						if (registryItem != null && registryItem.getItem() == i) {
+						if (registryItem != null && registryItem.asItem() == i) {
 							return colorIn;
 						}
 

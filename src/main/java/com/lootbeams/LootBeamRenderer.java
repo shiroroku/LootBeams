@@ -1,12 +1,16 @@
 package com.lootbeams;
 
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.matrix.PoseStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Vector3f;
+import com.sun.scenario.effect.impl.state.RenderState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderState;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -15,6 +19,7 @@ import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StringUtils;
 import net.minecraft.util.math.vector.Matrix3f;
@@ -25,6 +30,7 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextProcessing;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraftforge.fml.ModList;
 
 import java.awt.*;
@@ -45,7 +51,7 @@ public class LootBeamRenderer extends RenderState {
 		super(string, run, run2);
 	}
 
-	public static void renderLootBeam(MatrixStack stack, IRenderTypeBuffer buffer, float pticks, long worldtime, ItemEntity item) {
+	public static void renderLootBeam(PoseStack stack, MultiBufferSource buffer, float pticks, long worldtime, ItemEntity item) {
 		float beamRadius = 0.05f * Configuration.BEAM_RADIUS.get().floatValue();
 		float glowRadius = beamRadius + (beamRadius * 0.2f);
 		float beamAlpha = Configuration.BEAM_ALPHA.get().floatValue();
@@ -88,7 +94,7 @@ public class LootBeamRenderer extends RenderState {
 		}
 	}
 
-	private static void renderNameTag(MatrixStack stack, IRenderTypeBuffer buffer, ItemEntity item, Color color) {
+	private static void renderNameTag(PoseStack stack, MultiBufferSource buffer, ItemEntity item, Color color) {
 		//If player is crouching or looking at the item
 		if (Minecraft.getInstance().player.isCrouching() || (Configuration.RENDER_NAMETAGS_ONLOOK.get() && isLookingAt(Minecraft.getInstance().player, item, Configuration.NAMETAG_LOOK_SENSITIVITY.get()))) {
 
@@ -152,7 +158,7 @@ public class LootBeamRenderer extends RenderState {
 		}
 	}
 
-	private static void RenderText(FontRenderer fontRenderer, MatrixStack stack, IRenderTypeBuffer buffer, String text, int foregroundColor, int backgroundColor, float backgroundAlpha) {
+	private static void RenderText(FontRenderer fontRenderer, PoseStack stack, IRenderTypeBuffer buffer, String text, int foregroundColor, int backgroundColor, float backgroundAlpha) {
 		if (Configuration.BORDERS.get()) {
 			float w = -fontRenderer.width(text) / 2f;
 			int bg = new Color(0, 0, 0, (int) (255 * backgroundAlpha)).getRGB();
@@ -176,7 +182,7 @@ public class LootBeamRenderer extends RenderState {
 	 * Returns the color from the item's name, rarity, tag, or override.
 	 */
 	private static Color getItemColor(ItemEntity item) {
-		if(LootBeams.CRASH_BLACKLIST.contains(item.getItem())) {
+		if (LootBeams.CRASH_BLACKLIST.contains(item.getItem())) {
 			return Color.WHITE;
 		}
 
@@ -208,10 +214,10 @@ public class LootBeamRenderer extends RenderState {
 				return Color.WHITE;
 			}
 		} catch (Exception e) {
-			LootBeams.LOGGER.error("Failed to get color for ("+ item.getItem().getDisplayName() + "), added to temporary blacklist");
+			LootBeams.LOGGER.error("Failed to get color for (" + item.getItem().getDisplayName() + "), added to temporary blacklist");
 			LootBeams.CRASH_BLACKLIST.add(item.getItem());
-			LootBeams.LOGGER.info("Temporary blacklist is now : " );
-			for(ItemStack s : LootBeams.CRASH_BLACKLIST){
+			LootBeams.LOGGER.info("Temporary blacklist is now : ");
+			for (ItemStack s : LootBeams.CRASH_BLACKLIST) {
 				LootBeams.LOGGER.info(s.getDisplayName());
 			}
 			return Color.WHITE;
@@ -236,8 +242,8 @@ public class LootBeamRenderer extends RenderState {
 		return Color.WHITE;
 	}
 
-	private static void renderPart(MatrixStack stack, IVertexBuilder builder, float red, float green, float blue, float alpha, float height, float radius_1, float radius_2, float radius_3, float radius_4, float radius_5, float radius_6, float radius_7, float radius_8) {
-		MatrixStack.Entry matrixentry = stack.last();
+	private static void renderPart(PoseStack stack, IVertexBuilder builder, float red, float green, float blue, float alpha, float height, float radius_1, float radius_2, float radius_3, float radius_4, float radius_5, float radius_6, float radius_7, float radius_8) {
+		PoseStack.Entry matrixentry = stack.last();
 		Matrix4f matrixpose = matrixentry.pose();
 		Matrix3f matrixnormal = matrixentry.normal();
 		renderQuad(matrixpose, matrixnormal, builder, red, green, blue, alpha, height, radius_1, radius_2, radius_3, radius_4);

@@ -1,10 +1,10 @@
 license = "MIT"
-loaderVersion = "[36,)"
+loaderVersion = "[38,)"
 modLoader = "javafml"
 [[mods]]
 displayName = "LootBeams"
 modId = "lootbeams"
-version = "1.16.5"
+version = "1.18.1"
 logoFile = "banner.png"
 displayURL = "https://www.curseforge.com/minecraft/mc-mods/loot-beams"
 authors = "shiroroku(elise)"
@@ -17,10 +17,10 @@ mandatory = true
 modId = "forge"
 ordering = "NONE"
 side = "BOTH"
-versionRange = "[36,)"
+versionRange = "[38,)"
 [[dependencies.lootbeams]]
 mandatory = true
 modId = "minecraft"
 ordering = "NONE"
 side = "BOTH"
-versionRange = "[1.16.5,1.17)"
+versionRange = "[1.18,1.19)"
