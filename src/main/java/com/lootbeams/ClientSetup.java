@@ -1,9 +1,7 @@
 package com.lootbeams;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.item.*;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.*;
 import net.minecraftforge.api.distmarker.Dist;

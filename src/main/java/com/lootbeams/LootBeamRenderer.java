@@ -1,43 +1,38 @@
 package com.lootbeams;
 
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.matrix.PoseStack;
-import com.mojang.blaze3d.vertex.IVertexBuilder;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.math.Matrix3f;
+import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
-import com.sun.scenario.effect.impl.state.RenderState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderState;
+import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.StringUtils;
-import net.minecraft.util.math.vector.Matrix3f;
-import net.minecraft.util.math.vector.Matrix4f;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.math.vector.Vector3f;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextProcessing;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.util.StringDecomposer;
+import net.minecraft.util.StringUtil;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.fml.ModList;
 
 import java.awt.*;
 import java.util.List;
 import java.util.Optional;
 
-public class LootBeamRenderer extends RenderState {
+public class LootBeamRenderer extends RenderType {
 
 	/**
 	 * ISSUES:
@@ -47,8 +42,8 @@ public class LootBeamRenderer extends RenderState {
 	private static final ResourceLocation LOOT_BEAM_TEXTURE = new ResourceLocation(LootBeams.MODID, "textures/entity/loot_beam.png");
 	private static final RenderType LOOT_BEAM_RENDERTYPE = createRenderType();
 
-	public LootBeamRenderer(String string, Runnable run, Runnable run2) {
-		super(string, run, run2);
+	public LootBeamRenderer(String name, VertexFormat format, VertexFormat.Mode mode, int size, boolean crumble, boolean sorting, Runnable enable, Runnable disable) {
+		super(name, format, mode, size, crumble, sorting, enable, disable);
 	}
 
 	public static void renderLootBeam(PoseStack stack, MultiBufferSource buffer, float pticks, long worldtime, ItemEntity item) {
@@ -114,8 +109,8 @@ public class LootBeamRenderer extends RenderState {
 			stack.scale(-0.02F * nametagScale, -0.02F * nametagScale, 0.02F * nametagScale);
 
 			//Render stack counts on nametag
-			FontRenderer fontrenderer = Minecraft.getInstance().font;
-			String itemName = StringUtils.stripColor(item.getItem().getHoverName().getString());
+			Font fontrenderer = Minecraft.getInstance().font;
+			String itemName = StringUtil.stripColor(item.getItem().getHoverName().getString());
 			if (Configuration.RENDER_STACKCOUNT.get()) {
 				int count = item.getItem().getCount();
 				if (count > 1) {
@@ -131,15 +126,15 @@ public class LootBeamRenderer extends RenderState {
 			stack.translate(0.0D, 10, 0.0D);
 			stack.scale(0.75f, 0.75f, 0.75f);
 			boolean textDrawn = false;
-			List<ITextComponent> tooltip = item.getItem().getTooltipLines(null, ITooltipFlag.TooltipFlags.NORMAL);
+			List<Component> tooltip = item.getItem().getTooltipLines(null, TooltipFlag.Default.NORMAL);
 			if (tooltip.size() >= 2) {
-				ITextComponent tooltipRarity = tooltip.get(1);
+				Component tooltipRarity = tooltip.get(1);
 
 				//Render dmcloot rarity small tags
 				if (Configuration.DMCLOOT_COMPAT_RARITY.get() && ModList.get().isLoaded("dmcloot")) {
 					if (item.getItem().hasTag() && item.getItem().getTag().contains("dmcloot.rarity")) {
 						Color rarityColor = Configuration.WHITE_RARITIES.get() ? Color.WHITE : getRawColor(tooltipRarity);
-						TranslationTextComponent translatedRarity = new TranslationTextComponent("rarity.dmcloot." + item.getItem().getTag().getString("dmcloot.rarity"));
+						TranslatableComponent translatedRarity = new TranslatableComponent("rarity.dmcloot." + item.getItem().getTag().getString("dmcloot.rarity"));
 						RenderText(fontrenderer, stack, buffer, translatedRarity.getString(), rarityColor.getRGB(), backgroundColor, backgroundAlpha);
 						textDrawn = true;
 					}
@@ -158,7 +153,7 @@ public class LootBeamRenderer extends RenderState {
 		}
 	}
 
-	private static void RenderText(FontRenderer fontRenderer, PoseStack stack, IRenderTypeBuffer buffer, String text, int foregroundColor, int backgroundColor, float backgroundAlpha) {
+	private static void RenderText(Font fontRenderer, PoseStack stack, MultiBufferSource buffer, String text, int foregroundColor, int backgroundColor, float backgroundAlpha) {
 		if (Configuration.BORDERS.get()) {
 			float w = -fontRenderer.width(text) / 2f;
 			int bg = new Color(0, 0, 0, (int) (255 * backgroundAlpha)).getRGB();
@@ -227,10 +222,10 @@ public class LootBeamRenderer extends RenderState {
 	/**
 	 * Gets color from the first letter in the text component.
 	 */
-	private static Color getRawColor(ITextComponent text) {
+	private static Color getRawColor(Component text) {
 		List<Style> list = Lists.newArrayList();
 		text.visit((acceptor, styleIn) -> {
-			TextProcessing.iterateFormatted(styleIn, acceptor, (string, style, consumer) -> {
+			StringDecomposer.iterateFormatted(styleIn, acceptor, (string, style, consumer) -> {
 				list.add(style);
 				return true;
 			});
@@ -242,8 +237,8 @@ public class LootBeamRenderer extends RenderState {
 		return Color.WHITE;
 	}
 
-	private static void renderPart(PoseStack stack, IVertexBuilder builder, float red, float green, float blue, float alpha, float height, float radius_1, float radius_2, float radius_3, float radius_4, float radius_5, float radius_6, float radius_7, float radius_8) {
-		PoseStack.Entry matrixentry = stack.last();
+	private static void renderPart(PoseStack stack, VertexConsumer builder, float red, float green, float blue, float alpha, float height, float radius_1, float radius_2, float radius_3, float radius_4, float radius_5, float radius_6, float radius_7, float radius_8) {
+		PoseStack.Pose matrixentry = stack.last();
 		Matrix4f matrixpose = matrixentry.pose();
 		Matrix3f matrixnormal = matrixentry.normal();
 		renderQuad(matrixpose, matrixnormal, builder, red, green, blue, alpha, height, radius_1, radius_2, radius_3, radius_4);
@@ -252,30 +247,30 @@ public class LootBeamRenderer extends RenderState {
 		renderQuad(matrixpose, matrixnormal, builder, red, green, blue, alpha, height, radius_5, radius_6, radius_1, radius_2);
 	}
 
-	private static void renderQuad(Matrix4f pose, Matrix3f normal, IVertexBuilder builder, float red, float green, float blue, float alpha, float y, float z1, float texu1, float z, float texu) {
+	private static void renderQuad(Matrix4f pose, Matrix3f normal, VertexConsumer builder, float red, float green, float blue, float alpha, float y, float z1, float texu1, float z, float texu) {
 		addVertex(pose, normal, builder, red, green, blue, alpha, y, z1, texu1, 1f, 0f);
 		addVertex(pose, normal, builder, red, green, blue, alpha, 0f, z1, texu1, 1f, 1f);
 		addVertex(pose, normal, builder, red, green, blue, alpha, 0f, z, texu, 0f, 1f);
 		addVertex(pose, normal, builder, red, green, blue, alpha, y, z, texu, 0f, 0f);
 	}
 
-	private static void addVertex(Matrix4f pose, Matrix3f normal, IVertexBuilder builder, float red, float green, float blue, float alpha, float y, float x, float z, float texu, float texv) {
+	private static void addVertex(Matrix4f pose, Matrix3f normal, VertexConsumer builder, float red, float green, float blue, float alpha, float y, float x, float z, float texu, float texv) {
 		builder.vertex(pose, x, y, z).color(red, green, blue, alpha).uv(texu, texv).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, 0.0F, 1.0F, 0.0F).endVertex();
 	}
 
 	private static RenderType createRenderType() {
-		RenderType.State state = RenderType.State.builder().setTextureState(new RenderState.TextureState(LOOT_BEAM_TEXTURE, false, false)).setTransparencyState(TRANSLUCENT_TRANSPARENCY).setWriteMaskState(RenderState.COLOR_WRITE).setFogState(NO_FOG).createCompositeState(false);
-		return RenderType.create("loot_beam", DefaultVertexFormats.BLOCK, 7, 256, false, true, state);
+		RenderType.CompositeState state = RenderType.CompositeState.builder().setShaderState(RENDERTYPE_BEACON_BEAM_SHADER).setTextureState(new RenderStateShard.TextureStateShard(LOOT_BEAM_TEXTURE, false, false)).setTransparencyState(TRANSLUCENT_TRANSPARENCY).setWriteMaskState(COLOR_WRITE).createCompositeState(false);
+		return RenderType.create("loot_beam", DefaultVertexFormat.BLOCK, VertexFormat.Mode.QUADS, 256, false, true, state);
 	}
 
 	/**
 	 * Checks if the player is looking at the given entity, accuracy determines how close the player has to look.
 	 */
-	private static boolean isLookingAt(ClientPlayerEntity player, Entity target, double accuracy) {
-		Vector3d difference = new Vector3d(target.getX() - player.getX(), target.getEyeY() - player.getEyeY(), target.getZ() - player.getZ());
+	private static boolean isLookingAt(LocalPlayer player, Entity target, double accuracy) {
+		Vec3 difference = new Vec3(target.getX() - player.getX(), target.getEyeY() - player.getEyeY(), target.getZ() - player.getZ());
 		double length = difference.length();
 		double dot = player.getViewVector(1.0F).normalize().dot(difference.normalize());
-		return dot > 1.0D - accuracy / length && player.canSee(target);
+		return dot > 1.0D - accuracy / length && !target.isInvisible();
 	}
 
 }
