@@ -47,11 +47,21 @@ public class LootBeamRenderer extends RenderType {
 	}
 
 	public static void renderLootBeam(PoseStack stack, MultiBufferSource buffer, float pticks, long worldtime, ItemEntity item) {
+		float beamAlpha = Configuration.BEAM_ALPHA.get().floatValue();
+		//Fade out when close
+		if (Minecraft.getInstance().player.distanceToSqr(item) < 2f) {
+			beamAlpha *= Minecraft.getInstance().player.distanceToSqr(item);
+		}
+		//Dont render beam if its too transparent
+		if (beamAlpha <= 0.15f) {
+			return;
+		}
+
 		float beamRadius = 0.05f * Configuration.BEAM_RADIUS.get().floatValue();
 		float glowRadius = beamRadius + (beamRadius * 0.2f);
-		float beamAlpha = Configuration.BEAM_ALPHA.get().floatValue();
 		float beamHeight = Configuration.BEAM_HEIGHT.get().floatValue();
 		float yOffset = Configuration.BEAM_Y_OFFSET.get().floatValue();
+
 
 		Color color = getItemColor(item);
 		float R = color.getRed() / 255f;

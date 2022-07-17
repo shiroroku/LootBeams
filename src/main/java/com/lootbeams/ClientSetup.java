@@ -29,6 +29,7 @@ public class ClientSetup {
 				return;
 			}
 
+
 			boolean shouldRender = false;
 			if (Configuration.ALL_ITEMS.get()) {
 				shouldRender = true;
