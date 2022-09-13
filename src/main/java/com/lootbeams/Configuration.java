@@ -1,6 +1,8 @@
 package com.lootbeams;
 
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.common.Mod;
@@ -103,7 +105,7 @@ public class Configuration {
 
 					//Modid
 					if (!nameIn.contains(":")) {
-						if (i.getRegistryName().getNamespace().equals(nameIn)) {
+						if (ForgeRegistries.ITEMS.getKey(i).getNamespace().equals(nameIn)) {
 							return colorIn;
 						}
 
@@ -112,7 +114,7 @@ public class Configuration {
 					if (registry != null) {
 						//Tag
 						if (nameIn.startsWith("#")) {
-							if (i.getTags().contains(registry)) {
+							if (ForgeRegistries.ITEMS.tags().getTag(TagKey.create(Registry.ITEM_REGISTRY, registry)).contains(i)) {
 								return colorIn;
 							}
 						}

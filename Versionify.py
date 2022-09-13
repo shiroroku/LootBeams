@@ -4,7 +4,7 @@ import os
 # Settings
 build_path="./build/libs/"
 mod_name = "lootbeams"
-mc_version = "1.18.1"
+mc_version = "1.19.2"
 build = "release"
 # ====
 

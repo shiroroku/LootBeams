@@ -17,7 +17,6 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.StringDecomposer;
 import net.minecraft.util.StringUtil;
@@ -144,7 +143,7 @@ public class LootBeamRenderer extends RenderType {
 				if (Configuration.DMCLOOT_COMPAT_RARITY.get() && ModList.get().isLoaded("dmcloot")) {
 					if (item.getItem().hasTag() && item.getItem().getTag().contains("dmcloot.rarity")) {
 						Color rarityColor = Configuration.WHITE_RARITIES.get() ? Color.WHITE : getRawColor(tooltipRarity);
-						TranslatableComponent translatedRarity = new TranslatableComponent("rarity.dmcloot." + item.getItem().getTag().getString("dmcloot.rarity"));
+						Component translatedRarity = Component.translatable("rarity.dmcloot." + item.getItem().getTag().getString("dmcloot.rarity"));
 						RenderText(fontrenderer, stack, buffer, translatedRarity.getString(), rarityColor.getRGB(), backgroundColor, backgroundAlpha);
 						textDrawn = true;
 					}

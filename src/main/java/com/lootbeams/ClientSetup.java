@@ -5,7 +5,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.*;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderNameplateEvent;
+import net.minecraftforge.client.event.RenderNameTagEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -22,13 +22,12 @@ public class ClientSetup {
 		MinecraftForge.EVENT_BUS.addListener(ClientSetup::onRenderNameplate);
 	}
 
-	public static void onRenderNameplate(RenderNameplateEvent event) {
+	public static void onRenderNameplate(RenderNameTagEvent event) {
 		if (event.getEntity() instanceof ItemEntity) {
 			ItemEntity itemEntity = (ItemEntity) event.getEntity();
 			if (Minecraft.getInstance().player.distanceToSqr(itemEntity) > Configuration.RENDER_DISTANCE.get() * Configuration.RENDER_DISTANCE.get()) {
 				return;
 			}
-
 
 			boolean shouldRender = false;
 			if (Configuration.ALL_ITEMS.get()) {
@@ -69,7 +68,7 @@ public class ClientSetup {
 		if (registryNames.size() > 0) {
 			for (String id : registryNames.stream().filter((s) -> (!s.isEmpty())).collect(Collectors.toList())) {
 				if (!id.contains(":")) {
-					if (item.getRegistryName().getNamespace().equals(id)) {
+					if (ForgeRegistries.ITEMS.getKey(item).getNamespace().equals(id)) {
 						return true;
 					}
 				}
