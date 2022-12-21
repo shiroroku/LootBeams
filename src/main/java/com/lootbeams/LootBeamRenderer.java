@@ -31,6 +31,9 @@ import java.awt.*;
 import java.util.List;
 import java.util.Optional;
 
+import static com.lootbeams.GetColorHelper.getItemColor;
+import static com.lootbeams.GetColorHelper.getRawColor;
+
 public class LootBeamRenderer extends RenderState {
 
 	/**
@@ -179,70 +182,6 @@ public class LootBeamRenderer extends RenderState {
 		} else {
 			fontRenderer.drawInBatch(text, (float) (-fontRenderer.width(text) / 2), 0f, foregroundColor, false, stack.last().pose(), buffer, false, backgroundColor, 15728864);
 		}
-	}
-
-	/**
-	 * Returns the color from the item's name, rarity, tag, or override.
-	 */
-	private static Color getItemColor(ItemEntity item) {
-		if(LootBeams.CRASH_BLACKLIST.contains(item.getItem())) {
-			return Color.WHITE;
-		}
-
-		try {
-
-			//From Config Overrides
-			Color override = Configuration.getColorFromItemOverrides(item.getItem().getItem());
-			if (override != null) {
-				return override;
-			}
-
-			//From NBT
-			if (item.getItem().hasTag() && item.getItem().getTag().contains("lootbeams.color")) {
-				return Color.decode(item.getItem().getTag().getString("lootbeams.color"));
-			}
-
-			//From Name
-			if (Configuration.RENDER_NAME_COLOR.get()) {
-				Color nameColor = getRawColor(item.getItem().getHoverName());
-				if (!nameColor.equals(Color.WHITE)) {
-					return nameColor;
-				}
-			}
-
-			//From Rarity
-			if (Configuration.RENDER_RARITY_COLOR.get() && item.getItem().getRarity().color != null) {
-				return new Color(item.getItem().getRarity().color.getColor());
-			} else {
-				return Color.WHITE;
-			}
-		} catch (Exception e) {
-			LootBeams.LOGGER.error("Failed to get color for ("+ item.getItem().getDisplayName() + "), added to temporary blacklist");
-			LootBeams.CRASH_BLACKLIST.add(item.getItem());
-			LootBeams.LOGGER.info("Temporary blacklist is now : " );
-			for(ItemStack s : LootBeams.CRASH_BLACKLIST){
-				LootBeams.LOGGER.info(s.getDisplayName());
-			}
-			return Color.WHITE;
-		}
-	}
-
-	/**
-	 * Gets color from the first letter in the text component.
-	 */
-	private static Color getRawColor(ITextComponent text) {
-		List<Style> list = Lists.newArrayList();
-		text.visit((acceptor, styleIn) -> {
-			TextProcessing.iterateFormatted(styleIn, acceptor, (string, style, consumer) -> {
-				list.add(style);
-				return true;
-			});
-			return Optional.empty();
-		}, Style.EMPTY);
-		if (list.get(0).getColor() != null) {
-			return new Color(list.get(0).getColor().getValue());
-		}
-		return Color.WHITE;
 	}
 
 	private static void renderPart(MatrixStack stack, IVertexBuilder builder, float red, float green, float blue, float alpha, float height, float radius_1, float radius_2, float radius_3, float radius_4, float radius_5, float radius_6, float radius_7, float radius_8) {
