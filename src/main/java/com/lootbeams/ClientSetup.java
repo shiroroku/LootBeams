@@ -11,9 +11,12 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import java.awt.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.lootbeams.GetColorHelper.getItemColor;
 
 @Mod.EventBusSubscriber(modid = LootBeams.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class ClientSetup {
@@ -45,6 +48,10 @@ public class ClientSetup {
 
 				if (Configuration.ONLY_RARE.get()) {
 					shouldRender = itemEntity.getItem().getRarity() != Rarity.COMMON;
+				}
+
+				if (Configuration.ONLY_NON_WHITE.get()){
+					shouldRender = !getItemColor(itemEntity).equals(Color.WHITE);
 				}
 
 				if (isItemInRegistryList(Configuration.WHITELIST.get(), itemEntity.getItem().getItem())) {

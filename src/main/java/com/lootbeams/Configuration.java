@@ -19,6 +19,7 @@ public class Configuration {
 	public static ForgeConfigSpec.BooleanValue ALL_ITEMS;
 	public static ForgeConfigSpec.BooleanValue ONLY_EQUIPMENT;
 	public static ForgeConfigSpec.BooleanValue ONLY_RARE;
+	public static ForgeConfigSpec.BooleanValue ONLY_NON_WHITE;
 	public static ForgeConfigSpec.ConfigValue<List<String>> WHITELIST;
 	public static ForgeConfigSpec.ConfigValue<List<String>> BLACKLIST;
 	public static ForgeConfigSpec.ConfigValue<List<String>> COLOR_OVERRIDES;
@@ -60,6 +61,7 @@ public class Configuration {
 		clientBuilder.comment("Item Config").push("Items");
 		ALL_ITEMS = clientBuilder.comment("If all Items Loot Beams should be rendered. Has priority over only_equipment and only_rare.").define("all_items", true);
 		ONLY_RARE = clientBuilder.comment("If Loot Beams should only be rendered on items with rarity.").define("only_rare", false);
+		ONLY_NON_WHITE = clientBuilder.comment("If Loot Beams should only be rendered on items with a non white color.").define("only_non_white", false);
 		ONLY_EQUIPMENT = clientBuilder.comment("If Loot Beams should only be rendered on equipment. (Equipment includes: Swords, Tools, Armor, Shields, Bows, Crossbows, Tridents, Arrows, and Fishing Rods)").define("only_equipment", false);
 		WHITELIST = clientBuilder.comment("Registry names of items that Loot Beams should render on. Example: \"minecraft:stone\", \"minecraft:iron_ingot\", You can also specify modids for a whole mod's items.").define("whitelist", new ArrayList<>());
 		BLACKLIST = clientBuilder.comment("Registry names of items that Loot Beams should NOT render on. This has priority over everything. You can also specify modids for a whole mod's items.").define("blacklist", new ArrayList<>());
