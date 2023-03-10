@@ -7,6 +7,8 @@ import net.minecraft.world.item.*;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderNameTagEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -20,6 +22,22 @@ public class ClientSetup {
 
 	public static void init(FMLClientSetupEvent e) {
 		MinecraftForge.EVENT_BUS.addListener(ClientSetup::onRenderNameplate);
+		MinecraftForge.EVENT_BUS.addListener(ClientSetup::onItemCreation);
+		MinecraftForge.EVENT_BUS.addListener(ClientSetup::entityRemoval);
+	}
+
+	public static void onItemCreation(EntityJoinLevelEvent event){
+		if(event.getEntity() instanceof ItemEntity ie){
+			if(!LootBeamRenderer.TOOLTIP_CACHE.containsKey(ie)){
+				LootBeamRenderer.TOOLTIP_CACHE.put(ie, ie.getItem().getTooltipLines(null, TooltipFlag.Default.NORMAL));
+			}
+		}
+	}
+
+	public static void entityRemoval(EntityLeaveLevelEvent event){
+	if(event.getEntity() instanceof ItemEntity ie){
+			LootBeamRenderer.TOOLTIP_CACHE.remove(ie);
+		}
 	}
 
 	public static void onRenderNameplate(RenderNameTagEvent event) {

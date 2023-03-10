@@ -29,9 +29,11 @@ import net.minecraftforge.fml.ModList;
 
 import java.awt.*;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class LootBeamRenderer extends RenderType {
+	public static final Map<ItemEntity, List<Component>> TOOLTIP_CACHE = new java.util.HashMap<>();
 
 	/**
 	 * ISSUES:
@@ -135,7 +137,13 @@ public class LootBeamRenderer extends RenderType {
 			stack.translate(0.0D, 10, 0.0D);
 			stack.scale(0.75f, 0.75f, 0.75f);
 			boolean textDrawn = false;
-			List<Component> tooltip = item.getItem().getTooltipLines(null, TooltipFlag.Default.NORMAL);
+			List<Component> tooltip;
+			if(!TOOLTIP_CACHE.containsKey(item)){
+				tooltip = item.getItem().getTooltipLines(null, TooltipFlag.Default.NORMAL);
+				TOOLTIP_CACHE.put(item, tooltip);
+			} else {
+				tooltip = TOOLTIP_CACHE.get(item);
+			}
 			if (tooltip.size() >= 2) {
 				Component tooltipRarity = tooltip.get(1);
 
