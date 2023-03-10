@@ -41,7 +41,8 @@ public class LootBeamRenderer extends RenderType {
 	 */
 
 	private static final ResourceLocation LOOT_BEAM_TEXTURE = new ResourceLocation(LootBeams.MODID, "textures/entity/loot_beam.png");
-	private static final RenderType LOOT_BEAM_RENDERTYPE = createRenderType();
+	private static final ResourceLocation WHITE_TEXTURE = new ResourceLocation(LootBeams.MODID, "textures/entity/white.png");
+	private static final RenderType LOOT_BEAM_RENDERTYPE = Configuration.GLOWING_BEAM.get() ? RenderType.lightning() : createRenderType();
 
 	public LootBeamRenderer(String name, VertexFormat format, VertexFormat.Mode mode, int size, boolean crumble, boolean sorting, Runnable enable, Runnable disable) {
 		super(name, format, mode, size, crumble, sorting, enable, disable);
@@ -78,7 +79,7 @@ public class LootBeamRenderer extends RenderType {
 		float rotation = (float) Math.floorMod(worldtime, 40L) + pticks;
 		stack.mulPose(Vector3f.YP.rotationDegrees(rotation * 2.25F - 45.0F));
 		stack.translate(0, yOffset, 0);
-		stack.translate(0, 1, 0);
+		stack.translate(0, 1.35, 0);
 		stack.mulPose(Vector3f.XP.rotationDegrees(180));
 		renderPart(stack, buffer.getBuffer(LOOT_BEAM_RENDERTYPE), R, G, B, beamAlpha, beamHeight, 0.0F, beamRadius, beamRadius, 0.0F, -beamRadius, 0.0F, 0.0F, -beamRadius);
 		stack.mulPose(Vector3f.XP.rotationDegrees(-180));
@@ -87,7 +88,7 @@ public class LootBeamRenderer extends RenderType {
 
 		//Render glow around main beam
 		stack.translate(0, yOffset, 0);
-		stack.translate(0, 1, 0);
+		stack.translate(0, 1.35, 0);
 		stack.mulPose(Vector3f.XP.rotationDegrees(180));
 		renderPart(stack, buffer.getBuffer(LOOT_BEAM_RENDERTYPE), R, G, B, beamAlpha * 0.4f, beamHeight, -glowRadius, -glowRadius, glowRadius, -glowRadius, -beamRadius, glowRadius, glowRadius, glowRadius);
 		stack.mulPose(Vector3f.XP.rotationDegrees(-180));
@@ -276,7 +277,8 @@ public class LootBeamRenderer extends RenderType {
 	}
 
 	private static RenderType createRenderType() {
-		RenderType.CompositeState state = RenderType.CompositeState.builder().setShaderState(RENDERTYPE_BEACON_BEAM_SHADER).setTextureState(new RenderStateShard.TextureStateShard(LOOT_BEAM_TEXTURE, false, false)).setTransparencyState(TRANSLUCENT_TRANSPARENCY).setWriteMaskState(COLOR_WRITE).createCompositeState(false);
+		ResourceLocation texture = !Configuration.SOLID_BEAM.get() ? LOOT_BEAM_TEXTURE : WHITE_TEXTURE;
+		RenderType.CompositeState state = RenderType.CompositeState.builder().setShaderState(RENDERTYPE_BEACON_BEAM_SHADER).setTextureState(new RenderStateShard.TextureStateShard(texture, false, false)).setTransparencyState(TRANSLUCENT_TRANSPARENCY).setWriteMaskState(COLOR_WRITE).createCompositeState(false);
 		return RenderType.create("loot_beam", DefaultVertexFormat.BLOCK, VertexFormat.Mode.QUADS, 256, false, true, state);
 	}
 

@@ -31,6 +31,8 @@ public class Configuration {
 	public static ForgeConfigSpec.DoubleValue BEAM_HEIGHT;
 	public static ForgeConfigSpec.DoubleValue BEAM_Y_OFFSET;
 	public static ForgeConfigSpec.DoubleValue BEAM_ALPHA;
+
+	public static ForgeConfigSpec.BooleanValue SOLID_BEAM;
 	public static ForgeConfigSpec.DoubleValue RENDER_DISTANCE;
 
 	public static ForgeConfigSpec.BooleanValue BORDERS;
@@ -46,6 +48,8 @@ public class Configuration {
 	public static ForgeConfigSpec.ConfigValue<List<String>> CUSTOM_RARITIES;
 	public static ForgeConfigSpec.BooleanValue WHITE_RARITIES;
 
+	public static ForgeConfigSpec.BooleanValue GLOWING_BEAM;
+
 	static {
 		ForgeConfigSpec.Builder clientBuilder = new ForgeConfigSpec.Builder();
 
@@ -56,6 +60,8 @@ public class Configuration {
 		BEAM_HEIGHT = clientBuilder.comment("The height of the Loot Beam.").defineInRange("beam_height", 1D, 0D, 10D);
 		BEAM_Y_OFFSET = clientBuilder.comment("The Y-offset of the loot beam.").defineInRange("beam_y_offset", 0D, -30D, 30D);
 		BEAM_ALPHA = clientBuilder.comment("Transparency of the Loot Beam.").defineInRange("beam_alpha", 0.85D, 0D, 1D);
+		SOLID_BEAM = clientBuilder.comment("If the Loot Beam should use a solid texture or the beacon style texture.").define("solid_beam", true);
+		GLOWING_BEAM = clientBuilder.comment("If the Loot Beam should be glowing. This requires SOLID_BEAM to be true.").define("glowing_beam", false);
 		RENDER_DISTANCE = clientBuilder.comment("How close the player has to be to see the beam. (note: ItemEntities stop rendering at 24 blocks, so that is the limit for beams)").defineInRange("render_distance", 24D, 0D, 24D);
 		COLOR_OVERRIDES = clientBuilder.comment("Overrides an item's beam color with hex color. Must follow the specific format: (registryname=hexcolor) Or (#tagname=hexcolor). Example: \"minecraft:stone=0xFFFFFF\". This also accepts modids.").define("color_overrides", new ArrayList<>());
 
