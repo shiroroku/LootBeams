@@ -1,11 +1,14 @@
 package com.lootbeams;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.*;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderNameTagEvent;
+import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
@@ -24,6 +27,10 @@ public class ClientSetup {
 		MinecraftForge.EVENT_BUS.addListener(ClientSetup::onRenderNameplate);
 		MinecraftForge.EVENT_BUS.addListener(ClientSetup::onItemCreation);
 		MinecraftForge.EVENT_BUS.addListener(ClientSetup::entityRemoval);
+	}
+
+	public static void playDropSound(ItemEntity itemEntity) {
+		itemEntity.level.playLocalSound(itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), SoundEvents.ANVIL_HIT, itemEntity.getSoundSource(), 0.2F, ((itemEntity.level.random.nextFloat() - itemEntity.level.random.nextFloat()) * 0.7F + 1.0F) * 2.0F, false);
 	}
 
 	public static void onItemCreation(EntityJoinLevelEvent event){
@@ -73,7 +80,7 @@ public class ClientSetup {
 				shouldRender = false;
 			}
 
-			if (shouldRender) {
+			if (shouldRender && itemEntity.isOnGround()) {
 				LootBeamRenderer.renderLootBeam(event.getPoseStack(), event.getMultiBufferSource(), event.getPartialTick(), itemEntity.level.getGameTime(), itemEntity);
 			}
 		}

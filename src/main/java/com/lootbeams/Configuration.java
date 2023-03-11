@@ -35,6 +35,12 @@ public class Configuration {
 	public static ForgeConfigSpec.BooleanValue SOLID_BEAM;
 	public static ForgeConfigSpec.DoubleValue RENDER_DISTANCE;
 
+	public static ForgeConfigSpec.BooleanValue GLOW_EFFECT;
+	public static ForgeConfigSpec.DoubleValue GLOW_EFFECT_RADIUS;
+	public static ForgeConfigSpec.BooleanValue ANIMATE_GLOW;
+
+	public static ForgeConfigSpec.BooleanValue PARTICLES;
+
 	public static ForgeConfigSpec.BooleanValue BORDERS;
 	public static ForgeConfigSpec.BooleanValue RENDER_NAMETAGS;
 	public static ForgeConfigSpec.BooleanValue RENDER_NAMETAGS_ONLOOK;
@@ -50,6 +56,12 @@ public class Configuration {
 
 	public static ForgeConfigSpec.BooleanValue GLOWING_BEAM;
 
+	public static ForgeConfigSpec.BooleanValue VANILLA_RARITIES;
+	public static ForgeConfigSpec.BooleanValue WHITE_CENTER;
+	public static ForgeConfigSpec.DoubleValue PARTICLE_SIZE;
+	public static ForgeConfigSpec.DoubleValue PARTICLE_SPEED;
+	public static ForgeConfigSpec.DoubleValue PARTICLE_RADIUS;
+
 	static {
 		ForgeConfigSpec.Builder clientBuilder = new ForgeConfigSpec.Builder();
 
@@ -61,7 +73,15 @@ public class Configuration {
 		BEAM_Y_OFFSET = clientBuilder.comment("The Y-offset of the loot beam.").defineInRange("beam_y_offset", 0D, -30D, 30D);
 		BEAM_ALPHA = clientBuilder.comment("Transparency of the Loot Beam.").defineInRange("beam_alpha", 0.85D, 0D, 1D);
 		SOLID_BEAM = clientBuilder.comment("If the Loot Beam should use a solid texture or the beacon style texture.").define("solid_beam", true);
-		GLOWING_BEAM = clientBuilder.comment("If the Loot Beam should be glowing. This requires SOLID_BEAM to be true.").define("glowing_beam", false);
+		WHITE_CENTER = clientBuilder.comment("If the Loot Beam should have a white center.").define("white_center", true);
+		GLOWING_BEAM = clientBuilder.comment("If the Loot Beam should be glowing.").define("glowing_beam", true);
+		GLOW_EFFECT = clientBuilder.comment("If the Loot Beam should have a glow effect around the base of the item.").define("glow_effect", true);
+		GLOW_EFFECT_RADIUS = clientBuilder.comment("The radius of the glow effect.").defineInRange("glow_effect_radius", 0.25D, 0.00001D, 1D);
+		ANIMATE_GLOW = clientBuilder.comment("If the glow effect should be animated.").define("animate_glow", true);
+		PARTICLES = clientBuilder.comment("If particles should appear around the item.").define("particles", true);
+		PARTICLE_SIZE = clientBuilder.comment("The size of the particles.").defineInRange("particle_size", 1.0D, 0.00001D, 10D);
+		PARTICLE_SPEED = clientBuilder.comment("The speed of the particles.").defineInRange("particle_speed", 0.1D, 0.00001D, 10D);
+		PARTICLE_RADIUS = clientBuilder.comment("The radius of the particles.").defineInRange("particle_radius", 0.1D, 0.00001D, 10D);
 		RENDER_DISTANCE = clientBuilder.comment("How close the player has to be to see the beam. (note: ItemEntities stop rendering at 24 blocks, so that is the limit for beams)").defineInRange("render_distance", 24D, 0D, 24D);
 		COLOR_OVERRIDES = clientBuilder.comment("Overrides an item's beam color with hex color. Must follow the specific format: (registryname=hexcolor) Or (#tagname=hexcolor). Example: \"minecraft:stone=0xFFFFFF\". This also accepts modids.").define("color_overrides", new ArrayList<>());
 
@@ -86,6 +106,7 @@ public class Configuration {
 		DMCLOOT_COMPAT_RARITY = clientBuilder.comment("If a smaller tag should be rendered under with DMCLoot rarities.").define("dmcloot_compat_rarity", true);
 		CUSTOM_RARITIES = clientBuilder.comment("Define what the smaller tag should render on. Example: \"Exotic\", \"Ancient\". The string supplied has to be the tooltip line below the name. This is really only used for modpacks.").define("custom_rarities", new ArrayList<>());
 		WHITE_RARITIES = clientBuilder.comment("If rarities should ignore color and render as white (This is really only used for modpacks)").define("white_rarities", false);
+		VANILLA_RARITIES = clientBuilder.comment("If vanilla rarities should be rendered.").define("vanilla_rarities", true);
 		clientBuilder.pop();
 
 		clientBuilder.pop();
