@@ -1,9 +1,11 @@
 package com.lootbeams;
 
+import com.lootbeams.compat.ApotheosisCompat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.*;
 import net.minecraftforge.api.distmarker.Dist;
@@ -12,6 +14,7 @@ import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -29,10 +32,6 @@ public class ClientSetup {
 		MinecraftForge.EVENT_BUS.addListener(ClientSetup::entityRemoval);
 	}
 
-	public static void playDropSound(ItemEntity itemEntity) {
-		itemEntity.level.playLocalSound(itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), SoundEvents.ANVIL_HIT, itemEntity.getSoundSource(), 0.2F, ((itemEntity.level.random.nextFloat() - itemEntity.level.random.nextFloat()) * 0.7F + 1.0F) * 2.0F, false);
-	}
-
 	public static void onItemCreation(EntityJoinLevelEvent event){
 		if(event.getEntity() instanceof ItemEntity ie){
 			if(!LootBeamRenderer.TOOLTIP_CACHE.containsKey(ie)){
@@ -44,6 +43,39 @@ public class ClientSetup {
 	public static void entityRemoval(EntityLeaveLevelEvent event){
 	if(event.getEntity() instanceof ItemEntity ie){
 			LootBeamRenderer.TOOLTIP_CACHE.remove(ie);
+		}
+	}
+
+	public static void playDropSound(ItemEntity itemEntity) {
+		if(!Configuration.SOUND.get()) return;
+		if(Configuration.SOUND_ALL_ITEMS.get() && !isItemInRegistryList(Configuration.BLACKLIST.get(), itemEntity.getItem().getItem())){
+			itemEntity.level.playSound(null, itemEntity, LootBeams.LOOT_DROP.get(), SoundSource.AMBIENT, Configuration.SOUND_VOLUME.get().floatValue(), ((itemEntity.level.random.nextFloat() - itemEntity.level.random.nextFloat()) * 0.7F + 1.0F) * 2.0F);
+		} else {
+			if (Configuration.SOUND_ONLY_EQUIPMENT.get()) {
+				List<Class<? extends Item>> equipmentClasses = Arrays.asList(SwordItem.class, TieredItem.class, ArmorItem.class, ShieldItem.class, BowItem.class, CrossbowItem.class, TridentItem.class, ArrowItem.class, FishingRodItem.class);
+				for (Class<? extends Item> item : equipmentClasses) {
+					if (item.isAssignableFrom(itemEntity.getItem().getItem().getClass())) {
+						itemEntity.level.playSound(null, itemEntity, LootBeams.LOOT_DROP.get(), SoundSource.AMBIENT, Configuration.SOUND_VOLUME.get().floatValue(), ((itemEntity.level.random.nextFloat() - itemEntity.level.random.nextFloat()) * 0.7F + 1.0F) * 2.0F);
+						break;
+					}
+				}
+			}
+			if (Configuration.SOUND_ONLY_RARE.get()) {
+				if(ModList.get().isLoaded("apotheosis")){
+					if(ApotheosisCompat.isApotheosisItem(itemEntity.getItem())){
+						if(!ApotheosisCompat.getRarityName(itemEntity.getItem()).equals("common") || itemEntity.getItem().getRarity() != Rarity.COMMON){
+							itemEntity.level.playSound(null, itemEntity, LootBeams.LOOT_DROP.get(), SoundSource.AMBIENT, Configuration.SOUND_VOLUME.get().floatValue(), ((itemEntity.level.random.nextFloat() - itemEntity.level.random.nextFloat()) * 0.7F + 1.0F) * 2.0F);
+						}
+					}
+				} else {
+					if (itemEntity.getItem().getRarity() != Rarity.COMMON) {
+						itemEntity.level.playSound(null, itemEntity, LootBeams.LOOT_DROP.get(), SoundSource.AMBIENT, Configuration.SOUND_VOLUME.get().floatValue(), ((itemEntity.level.random.nextFloat() - itemEntity.level.random.nextFloat()) * 0.7F + 1.0F) * 2.0F);
+					}
+				}
+			}
+			if (isItemInRegistryList(Configuration.SOUND_ONLY_WHITELIST.get(), itemEntity.getItem().getItem())) {
+				itemEntity.level.playSound(null, itemEntity, LootBeams.LOOT_DROP.get(), SoundSource.AMBIENT, Configuration.SOUND_VOLUME.get().floatValue(), ((itemEntity.level.random.nextFloat() - itemEntity.level.random.nextFloat()) * 0.7F + 1.0F) * 2.0F);
+			}
 		}
 	}
 

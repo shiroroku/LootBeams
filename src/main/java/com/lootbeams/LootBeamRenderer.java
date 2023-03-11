@@ -138,13 +138,13 @@ public class LootBeamRenderer extends RenderType {
         }
 
         if (Configuration.PARTICLES.get()) {
-            if (((int) entityTime) % 20 == 0 && pticks < 0.3f && !Minecraft.getInstance().isPaused()) {
-                addParticle(ModClientEvents.GLOW_TEXTURE, R, G, B, 1.0f, 40, RANDOM.nextFloat((float) (0.25f * Configuration.PARTICLE_SIZE.get()), (float) (1.1f * Configuration.PARTICLE_SIZE.get())), new Vec3(
+            if (((int) entityTime) % 10 == 0 && pticks < 0.3f && !Minecraft.getInstance().isPaused()) {
+                addParticle(ModClientEvents.GLOW_TEXTURE, R, G, B, 1.0f, 20, RANDOM.nextFloat((float) (0.25f * Configuration.PARTICLE_SIZE.get()), (float) (1.1f * Configuration.PARTICLE_SIZE.get())), new Vec3(
                         RANDOM.nextDouble(item.getX() - Configuration.PARTICLE_RADIUS.get(), item.getX() + Configuration.PARTICLE_RADIUS.get()),
                         RANDOM.nextDouble(item.getY() - (Configuration.PARTICLE_RADIUS.get()/3f), item.getY() + (Configuration.PARTICLE_RADIUS.get()/3f)),
                         RANDOM.nextDouble(item.getZ() - Configuration.PARTICLE_RADIUS.get(), item.getZ() + Configuration.PARTICLE_RADIUS.get())),
                         new Vec3(RANDOM.nextDouble(-Configuration.PARTICLE_SPEED.get()/2.0f, Configuration.PARTICLE_SPEED.get()/2.0f),
-                                RANDOM.nextDouble(-Configuration.PARTICLE_SPEED.get(), Configuration.PARTICLE_SPEED.get()),
+                                RANDOM.nextDouble(Configuration.PARTICLE_SPEED.get()),
                                 RANDOM.nextDouble(-Configuration.PARTICLE_SPEED.get()/2.0f, Configuration.PARTICLE_SPEED.get()/2.0f)));
             }
         }

@@ -62,6 +62,14 @@ public class Configuration {
 	public static ForgeConfigSpec.DoubleValue PARTICLE_SPEED;
 	public static ForgeConfigSpec.DoubleValue PARTICLE_RADIUS;
 
+	public static ForgeConfigSpec.BooleanValue SOUND;
+	public static ForgeConfigSpec.DoubleValue SOUND_VOLUME;
+	public static ForgeConfigSpec.BooleanValue SOUND_ONLY_RARE;
+	public static ForgeConfigSpec.BooleanValue SOUND_ONLY_EQUIPMENT;
+	public static ForgeConfigSpec.ConfigValue<List<String>> SOUND_ONLY_WHITELIST;
+	public static ForgeConfigSpec.ConfigValue<List<String>> SOUND_ONLY_BLACKLIST;
+	public static ForgeConfigSpec.BooleanValue SOUND_ALL_ITEMS;
+
 	static {
 		ForgeConfigSpec.Builder clientBuilder = new ForgeConfigSpec.Builder();
 
@@ -108,6 +116,18 @@ public class Configuration {
 		WHITE_RARITIES = clientBuilder.comment("If rarities should ignore color and render as white (This is really only used for modpacks)").define("white_rarities", false);
 		VANILLA_RARITIES = clientBuilder.comment("If vanilla rarities should be rendered.").define("vanilla_rarities", true);
 		clientBuilder.pop();
+
+		clientBuilder.comment("Sounds").push("Sounds");
+		SOUND = clientBuilder.comment("If sounds should be played when items are picked up.").define("play_sounds", true);
+		SOUND_VOLUME = clientBuilder.comment("The volume of the sound.").defineInRange("sound_volume", 1D, 0D, 1D);
+		SOUND_ALL_ITEMS = clientBuilder.comment("If sounds should play on all items. Has priority over sound_only_equipment and sound_only_rare.").define("sound_all_items", true);
+		SOUND_ONLY_RARE = clientBuilder.comment("If sounds should only be played on items with rarity.").define("sound_only_rare", false);
+		SOUND_ONLY_EQUIPMENT = clientBuilder.comment("If sounds should only be played on equipment. (Equipment includes: Swords, Tools, Armor, Shields, Bows, Crossbows, Tridents, Arrows, and Fishing Rods)").define("sound_only_equipment", false);
+		SOUND_ONLY_WHITELIST = clientBuilder.comment("Registry names of items that sounds should play on. Example: \"minecraft:stone\", \"minecraft:iron_ingot\", You can also specify modids for a whole mod's items.").define("sound_whitelist", new ArrayList<>());
+		SOUND_ONLY_BLACKLIST = clientBuilder.comment("Registry names of items that sounds should NOT play on. This has priority over everything. You can also specify modids for a whole mod's items.").define("sound_blacklist", new ArrayList<>());
+		clientBuilder.pop();
+
+
 
 		clientBuilder.pop();
 
