@@ -27,6 +27,7 @@ import net.minecraft.util.StringUtil;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
 import net.minecraft.world.phys.Vec3;
@@ -40,6 +41,7 @@ import java.util.Random;
 
 public class LootBeamRenderer extends RenderType {
     public static final Map<ItemEntity, List<Component>> TOOLTIP_CACHE = new java.util.HashMap<>();
+    public static final List<ItemEntity> LIGHT_CACHE = new java.util.ArrayList<>();
 
     /**
      * ISSUES:
@@ -128,6 +130,7 @@ public class LootBeamRenderer extends RenderType {
                 beamAlpha *= (Math.abs(Math.cos((entityTime + pticks) / 10f)) * 0.5f + 0.5f) * 1.3f;
                 radius *= ((Math.abs(Math.cos((entityTime + pticks) / 10f) * 0.45f)) * 0.75f + 0.75f);
             }
+
             renderGlow(stack, buffer.getBuffer(GLOW), R, G, B, beamAlpha * 0.4f, radius);
             stack.popPose();
         }
@@ -138,15 +141,44 @@ public class LootBeamRenderer extends RenderType {
         }
 
         if (Configuration.PARTICLES.get()) {
-            if (((int) entityTime) % 10 == 0 && pticks < 0.3f && !Minecraft.getInstance().isPaused()) {
-                addParticle(ModClientEvents.GLOW_TEXTURE, R, G, B, 1.0f, 20, RANDOM.nextFloat((float) (0.25f * Configuration.PARTICLE_SIZE.get()), (float) (1.1f * Configuration.PARTICLE_SIZE.get())), new Vec3(
-                        RANDOM.nextDouble(item.getX() - Configuration.PARTICLE_RADIUS.get(), item.getX() + Configuration.PARTICLE_RADIUS.get()),
-                        RANDOM.nextDouble(item.getY() - (Configuration.PARTICLE_RADIUS.get()/3f), item.getY() + (Configuration.PARTICLE_RADIUS.get()/3f)),
-                        RANDOM.nextDouble(item.getZ() - Configuration.PARTICLE_RADIUS.get(), item.getZ() + Configuration.PARTICLE_RADIUS.get())),
-                        new Vec3(RANDOM.nextDouble(-Configuration.PARTICLE_SPEED.get()/2.0f, Configuration.PARTICLE_SPEED.get()/2.0f),
-                                RANDOM.nextDouble(Configuration.PARTICLE_SPEED.get()),
-                                RANDOM.nextDouble(-Configuration.PARTICLE_SPEED.get()/2.0f, Configuration.PARTICLE_SPEED.get()/2.0f)));
+            if (!Configuration.PARTICLE_RARE_ONLY.get()) {
+                renderParticles(pticks, item, (int) entityTime, R, G, B);
+            } else {
+                boolean shouldRender = false;
+                shouldRender = compatRarityCheck(item, shouldRender);
+                if (shouldRender) {
+                    renderParticles(pticks, item, (int) entityTime, R, G, B);
+                }
             }
+
+        }
+    }
+
+    static boolean compatRarityCheck(ItemEntity item, boolean shouldRender) {
+        if(ModList.get().isLoaded("apotheosis")){
+            if(ApotheosisCompat.isApotheosisItem(item.getItem())){
+                if(!ApotheosisCompat.getRarityName(item.getItem()).equals("common") || item.getItem().getRarity() != Rarity.COMMON){
+                    shouldRender = true;
+                }
+            }
+        } else {
+            if (item.getItem().getRarity() != Rarity.COMMON) {
+                shouldRender = true;
+            }
+        }
+        return shouldRender;
+    }
+
+    private static void renderParticles(float pticks, ItemEntity item, int entityTime, float r, float g, float b) {
+        float particleCount = Math.abs(20- Configuration.PARTICLE_COUNT.get().floatValue());
+        if (entityTime % particleCount == 0 && pticks < 0.3f && !Minecraft.getInstance().isPaused()) {
+            addParticle(ModClientEvents.GLOW_TEXTURE, r, g, b, 1.0f, Configuration.PARTICLE_LIFETIME.get(), RANDOM.nextFloat((float) (0.25f * Configuration.PARTICLE_SIZE.get()), (float) (1.1f * Configuration.PARTICLE_SIZE.get())), new Vec3(
+                            RANDOM.nextDouble(item.getX() - Configuration.PARTICLE_RADIUS.get(), item.getX() + Configuration.PARTICLE_RADIUS.get()),
+                            RANDOM.nextDouble(item.getY() - (Configuration.PARTICLE_RADIUS.get()/3f), item.getY() + (Configuration.PARTICLE_RADIUS.get()/3f)),
+                            RANDOM.nextDouble(item.getZ() - Configuration.PARTICLE_RADIUS.get(), item.getZ() + Configuration.PARTICLE_RADIUS.get())),
+                    new Vec3(RANDOM.nextDouble(-Configuration.PARTICLE_SPEED.get()/2.0f, Configuration.PARTICLE_SPEED.get()/2.0f),
+                            RANDOM.nextDouble(Configuration.PARTICLE_SPEED.get()),
+                            RANDOM.nextDouble(-Configuration.PARTICLE_SPEED.get()/2.0f, Configuration.PARTICLE_SPEED.get()/2.0f)));
         }
     }
 

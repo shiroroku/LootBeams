@@ -37,13 +37,46 @@ public class ClientSetup {
 			if(!LootBeamRenderer.TOOLTIP_CACHE.containsKey(ie)){
 				LootBeamRenderer.TOOLTIP_CACHE.put(ie, ie.getItem().getTooltipLines(null, TooltipFlag.Default.NORMAL));
 			}
+			if(!LootBeamRenderer.LIGHT_CACHE.contains(ie)){
+				LootBeamRenderer.LIGHT_CACHE.add(ie);
+			}
 		}
 	}
 
 	public static void entityRemoval(EntityLeaveLevelEvent event){
 	if(event.getEntity() instanceof ItemEntity ie){
 			LootBeamRenderer.TOOLTIP_CACHE.remove(ie);
+			LootBeamRenderer.LIGHT_CACHE.remove(ie);
 		}
+	}
+
+	public static int overrideLight(ItemEntity ie, int light){
+		if(Configuration.ALL_ITEMS.get()){
+			light = 15728640;
+		} else {
+			if(Configuration.ONLY_EQUIPMENT.get()){
+				if(ie.getItem().getItem() instanceof SwordItem || ie.getItem().getItem() instanceof TieredItem || ie.getItem().getItem() instanceof ArmorItem || ie.getItem().getItem() instanceof ShieldItem || ie.getItem().getItem() instanceof BowItem || ie.getItem().getItem() instanceof CrossbowItem){
+					light = 15728640;
+				}
+			}
+			if(Configuration.ONLY_RARE.get()){
+				if(ModList.get().isLoaded("apotheosis")){
+					if(ApotheosisCompat.isApotheosisItem(ie.getItem())){
+						if(!ApotheosisCompat.getRarityName(ie.getItem()).equals("common") || ie.getItem().getRarity() != Rarity.COMMON){
+							light = 15728640;
+						}
+					}
+				} else {
+					if (ie.getItem().getRarity() != Rarity.COMMON) {
+						light = 15728640;
+					}
+				}
+			}
+			if (isItemInRegistryList(Configuration.SOUND_ONLY_WHITELIST.get(), ie.getItem().getItem())) {
+				light = 15728640;
+			}
+		}
+		return light;
 	}
 
 	public static void playDropSound(ItemEntity itemEntity) {
@@ -101,7 +134,7 @@ public class ClientSetup {
 				}
 
 				if (Configuration.ONLY_RARE.get()) {
-					shouldRender = itemEntity.getItem().getRarity() != Rarity.COMMON;
+					shouldRender = LootBeamRenderer.compatRarityCheck(itemEntity, shouldRender);
 				}
 
 				if (isItemInRegistryList(Configuration.WHITELIST.get(), itemEntity.getItem().getItem())) {
