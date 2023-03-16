@@ -54,8 +54,8 @@ public class LootBeamRenderer extends RenderType {
 	
 	private static final ResourceLocation GLOW_TEXTURE = new ResourceLocation(LootBeams.MODID, "textures/entity/glow.png");
 	private static final RenderType LOOT_BEAM_RENDERTYPE = Configuration.GLOWING_BEAM.get() ? RenderType.lightning() : createRenderType();
-	private static final RenderType GLOW = Configuration.GLOWING_BEAM.get() ? RenderType.entityTranslucent(GLOW_TEXTURE) : RenderType.entityCutout(GLOW_TEXTURE);
-	
+	private static final RenderType GLOW = Configuration.GLOWING_BEAM.get() ? createGlowRenderType() : RenderType.entityCutout(GLOW_TEXTURE);
+
 	private static final Random RANDOM = new Random();
 	private static final XoroshiroRandomSource RANDOM_SOURCE = new XoroshiroRandomSource(42L);
 
@@ -431,6 +431,11 @@ public class LootBeamRenderer extends RenderType {
 		ResourceLocation texture = !Configuration.SOLID_BEAM.get() ? LOOT_BEAM_TEXTURE : WHITE_TEXTURE;
 		RenderType.CompositeState state = RenderType.CompositeState.builder().setShaderState(RENDERTYPE_BEACON_BEAM_SHADER).setTextureState(new RenderStateShard.TextureStateShard(texture, false, false)).setTransparencyState(TRANSLUCENT_TRANSPARENCY).setWriteMaskState(COLOR_WRITE).createCompositeState(false);
 		return RenderType.create("loot_beam", DefaultVertexFormat.BLOCK, VertexFormat.Mode.QUADS, 256, false, true, state);
+	}
+	
+	private static RenderType createGlowRenderType() {
+		RenderType.CompositeState state = RenderType.CompositeState.builder().setShaderState(RenderStateShard.RENDERTYPE_ENTITY_TRANSLUCENT_SHADER).setTextureState(new RenderStateShard.TextureStateShard(GLOW_TEXTURE, false, false)).setTransparencyState(TRANSLUCENT_TRANSPARENCY).setCullState(NO_CULL).setLightmapState(LIGHTMAP).setWriteMaskState(COLOR_WRITE).setOverlayState(OVERLAY).createCompositeState(true);
+		return RenderType.create("loot_beam_glow", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, true, true, state);
 	}
 
 	/**
