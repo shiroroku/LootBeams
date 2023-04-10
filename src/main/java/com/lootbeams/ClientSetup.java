@@ -154,7 +154,7 @@ public class ClientSetup {
 				shouldRender = false;
 			}
 
-			if (shouldRender && itemEntity.isOnGround()) {
+			if (shouldRender && (!Configuration.REQUIRE_ON_GROUND.get() || itemEntity.isOnGround())) {
 				LootBeamRenderer.renderLootBeam(event.getPoseStack(), event.getMultiBufferSource(), event.getPartialTick(), itemEntity.level.getGameTime(), itemEntity);
 			}
 		}
