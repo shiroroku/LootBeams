@@ -11,7 +11,6 @@ import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderStateShard;
@@ -20,8 +19,6 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
-import net.minecraft.util.RandomSource;
 import net.minecraft.util.StringDecomposer;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.entity.Entity;
@@ -29,7 +26,6 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.fml.ModList;
 
@@ -56,7 +52,6 @@ public class LootBeamRenderer extends RenderType {
     private static final RenderType GLOW = Configuration.GLOWING_BEAM.get() ? RenderType.entityTranslucentEmissive(GLOW_TEXTURE) : RenderType.entityCutout(GLOW_TEXTURE);
 
     private static final Random RANDOM = new Random();
-    private static final XoroshiroRandomSource RANDOM_SOURCE = new XoroshiroRandomSource(42L);
 
     public LootBeamRenderer(String name, VertexFormat format, VertexFormat.Mode mode, int size, boolean crumble, boolean sorting, Runnable enable, Runnable disable) {
         super(name, format, mode, size, crumble, sorting, enable, disable);
@@ -140,33 +135,13 @@ public class LootBeamRenderer extends RenderType {
             renderNameTag(stack, buffer, item, color);
         }
 
-        if (Configuration.PARTICLES.get()) {
-            if (!Configuration.PARTICLE_RARE_ONLY.get()) {
-                renderParticles(pticks, item, (int) entityTime, R, G, B);
-            } else {
-                boolean shouldRender = false;
-                shouldRender = compatRarityCheck(item, shouldRender);
-                if (shouldRender) {
-                    renderParticles(pticks, item, (int) entityTime, R, G, B);
-                }
-            }
-
+        if (Configuration.PARTICLES.get() && !Configuration.PARTICLE_RARE_ONLY.get() || compatRarityCheck(item, false)) {
+            renderParticles(pticks, item, (int) entityTime, R, G, B);
         }
     }
 
-    static boolean compatRarityCheck(ItemEntity item, boolean shouldRender) {
-        if(ModList.get().isLoaded("apotheosis")){
-            if(ApotheosisCompat.isApotheosisItem(item.getItem())){
-                if(!ApotheosisCompat.getRarityName(item.getItem()).equals("common") || item.getItem().getRarity() != Rarity.COMMON){
-                    shouldRender = true;
-                }
-            }
-        } else {
-            if (item.getItem().getRarity() != Rarity.COMMON) {
-                shouldRender = true;
-            }
-        }
-        return shouldRender;
+    static boolean compatRarityCheck(ItemEntity item, boolean isRare) {
+        return isRare || item.getItem().getRarity() != Rarity.COMMON || !ApotheosisCompat.getRarityName(item.getItem()).equals("common");
     }
 
     private static void renderParticles(float pticks, ItemEntity item, int entityTime, float r, float g, float b) {
@@ -180,11 +155,6 @@ public class LootBeamRenderer extends RenderType {
                             RANDOM.nextDouble(Configuration.PARTICLE_SPEED.get()),
                             RANDOM.nextDouble(-Configuration.PARTICLE_SPEED.get()/2.0f, Configuration.PARTICLE_SPEED.get()/2.0f)));
         }
-    }
-
-    private static double pulse(float entityTime, float max) {
-        double val = Math.cos(entityTime / 10f) * 0.5f + 0.5f;
-        return Mth.lerp(val, 0.25f, max);
     }
 
     private static void addParticle(ResourceLocation spriteLocation, float red, float green, float blue, float alpha, int lifetime, float size, Vec3 pos, Vec3 motion) {
@@ -235,7 +205,7 @@ public class LootBeamRenderer extends RenderType {
                 }
             }
 
-            //Move closer to the player so we dont render in beam, and render the tag
+            //Move closer to the player, so we don't render in beam, and render the tag
             stack.translate(0, 0, -10);
             RenderText(fontrenderer, stack, buffer, itemName, foregroundColor, backgroundColor, backgroundAlpha);
 
@@ -277,10 +247,8 @@ public class LootBeamRenderer extends RenderType {
                 foregroundColor = new Color(rarityColor.getRed(), rarityColor.getGreen(), rarityColor.getBlue(), (int) (255 * foregroundAlpha)).getRGB();
                 backgroundColor = new Color(rarityColor.getRed(), rarityColor.getGreen(), rarityColor.getBlue(), (int) (255 * backgroundAlpha)).getRGB();
                 String rarity = item.getItem().getRarity().name().toLowerCase();
-                if (ModList.get().isLoaded("apotheosis")) {
-                    if (ApotheosisCompat.isApotheosisItem(item.getItem())) {
-                        rarity = ApotheosisCompat.getRarityName(item.getItem());
-                    }
+                if (ModList.get().isLoaded("apotheosis") && ApotheosisCompat.isApotheosisItem(item.getItem())) {
+                    rarity = ApotheosisCompat.getRarityName(item.getItem());
                 }
                 RenderText(fontrenderer, stack, buffer, capitalize(rarity), foregroundColor, backgroundColor, backgroundAlpha);
             }
@@ -313,7 +281,7 @@ public class LootBeamRenderer extends RenderType {
             fontRenderer.draw(stack, text, w, 0, foregroundColor);
             stack.translate(0.0D, 0.0D, 0.01D);
         } else {
-            fontRenderer.drawInBatch(text, (float) (-fontRenderer.width(text) / 2), 0f, foregroundColor, false, stack.last().pose(), buffer, false, backgroundColor, 15728864);
+            fontRenderer.drawInBatch(text, (float) (-fontRenderer.width(text) / 2D), 0f, foregroundColor, false, stack.last().pose(), buffer, false, backgroundColor, 15728864);
         }
     }
 
@@ -353,7 +321,7 @@ public class LootBeamRenderer extends RenderType {
                 return Color.WHITE;
             }
         } catch (Exception e) {
-            LootBeams.LOGGER.error("Failed to get color for (" + item.getItem().getDisplayName() + "), added to temporary blacklist");
+            LootBeams.LOGGER.error("Failed to get color for ({}), added to temporary blacklist", item.getItem().getDisplayName());
             LootBeams.CRASH_BLACKLIST.add(item.getItem());
             LootBeams.LOGGER.info("Temporary blacklist is now : ");
             for (ItemStack s : LootBeams.CRASH_BLACKLIST) {
@@ -382,49 +350,24 @@ public class LootBeamRenderer extends RenderType {
     }
 
     private static void renderPart(PoseStack stack, VertexConsumer builder, float red, float green, float blue, float alpha, float height, float radius_1, float radius_2, float radius_3, float radius_4, float radius_5, float radius_6, float radius_7, float radius_8, boolean gradient) {
-        if (gradient) {
-            renderGradientPart(stack, builder, red, green, blue, alpha, height, radius_1, radius_2, radius_3, radius_4, radius_5, radius_6, radius_7, radius_8);
-        } else {
-            renderPart(stack, builder, red, green, blue, alpha, height, radius_1, radius_2, radius_3, radius_4, radius_5, radius_6, radius_7, radius_8);
-        }
-    }
-
-    private static void renderPart(PoseStack stack, VertexConsumer builder, float red, float green, float blue, float alpha, float height, float radius_1, float radius_2, float radius_3, float radius_4, float radius_5, float radius_6, float radius_7, float radius_8) {
         PoseStack.Pose matrixentry = stack.last();
         Matrix4f matrixpose = matrixentry.pose();
         Matrix3f matrixnormal = matrixentry.normal();
-        renderQuad(matrixpose, matrixnormal, builder, red, green, blue, alpha, height, radius_1, radius_2, radius_3, radius_4);
-        renderQuad(matrixpose, matrixnormal, builder, red, green, blue, alpha, height, radius_7, radius_8, radius_5, radius_6);
-        renderQuad(matrixpose, matrixnormal, builder, red, green, blue, alpha, height, radius_3, radius_4, radius_7, radius_8);
-        renderQuad(matrixpose, matrixnormal, builder, red, green, blue, alpha, height, radius_5, radius_6, radius_1, radius_2);
+        renderQuad(matrixpose, matrixnormal, builder, red, green, blue, alpha, height, radius_1, radius_2, radius_3, radius_4, gradient);
+        renderQuad(matrixpose, matrixnormal, builder, red, green, blue, alpha, height, radius_7, radius_8, radius_5, radius_6, gradient);
+        renderQuad(matrixpose, matrixnormal, builder, red, green, blue, alpha, height, radius_3, radius_4, radius_7, radius_8, gradient);
+        renderQuad(matrixpose, matrixnormal, builder, red, green, blue, alpha, height, radius_5, radius_6, radius_1, radius_2, gradient);
     }
 
-    private static void renderGradientPart(PoseStack stack, VertexConsumer builder, float red, float green, float blue, float alpha, float height, float radius_1, float radius_2, float radius_3, float radius_4, float radius_5, float radius_6, float radius_7, float radius_8) {
-        PoseStack.Pose matrixentry = stack.last();
-        Matrix4f matrixpose = matrixentry.pose();
-        Matrix3f matrixnormal = matrixentry.normal();
-        renderUpwardsGradientQuad(matrixpose, matrixnormal, builder, red, green, blue, alpha, height, radius_1, radius_2, radius_3, radius_4);
-        renderUpwardsGradientQuad(matrixpose, matrixnormal, builder, red, green, blue, alpha, height, radius_7, radius_8, radius_5, radius_6);
-        renderUpwardsGradientQuad(matrixpose, matrixnormal, builder, red, green, blue, alpha, height, radius_3, radius_4, radius_7, radius_8);
-        renderUpwardsGradientQuad(matrixpose, matrixnormal, builder, red, green, blue, alpha, height, radius_5, radius_6, radius_1, radius_2);
+    private static void renderQuad(Matrix4f pose, Matrix3f normal, VertexConsumer builder, float red, float green, float blue, float alpha, float y, float x1, float z1, float x2, float z2, boolean gradient) {
+        addVertex(pose, normal, builder, red, green, blue, gradient ? 0.0f : alpha, y, x1, z1, 1f, 0f);
+        addVertex(pose, normal, builder, red, green, blue, alpha, 0f, x1, z1, 1f, 1f);
+        addVertex(pose, normal, builder, red, green, blue, alpha, 0f, x2, z2, 0f, 1f);
+        addVertex(pose, normal, builder, red, green, blue, gradient ? 0.0f : alpha, y, x2, z2, 0f, 0f);
     }
 
-    private static void renderQuad(Matrix4f pose, Matrix3f normal, VertexConsumer builder, float red, float green, float blue, float alpha, float y, float z1, float texu1, float z, float texu) {
-        addVertex(pose, normal, builder, red, green, blue, alpha, y, z1, texu1, 1f, 0f);
-        addVertex(pose, normal, builder, red, green, blue, alpha, 0f, z1, texu1, 1f, 1f);
-        addVertex(pose, normal, builder, red, green, blue, alpha, 0f, z, texu, 0f, 1f);
-        addVertex(pose, normal, builder, red, green, blue, alpha, y, z, texu, 0f, 0f);
-    }
-
-    private static void renderUpwardsGradientQuad(Matrix4f pose, Matrix3f normal, VertexConsumer builder, float red, float green, float blue, float alpha, float y, float z1, float texu1, float z, float texu) {
-        addVertex(pose, normal, builder, red, green, blue, 0.0f, y, z1, texu1, 1f, 0f);
-        addVertex(pose, normal, builder, red, green, blue, alpha, 0f, z1, texu1, 1f, 1f);
-        addVertex(pose, normal, builder, red, green, blue, alpha, 0f, z, texu, 0f, 1f);
-        addVertex(pose, normal, builder, red, green, blue, 0.0f, y, z, texu, 0f, 0f);
-    }
-
-    private static void addVertex(Matrix4f pose, Matrix3f normal, VertexConsumer builder, float red, float green, float blue, float alpha, float y, float x, float z, float texu, float texv) {
-        builder.vertex(pose, x, y, z).color(red, green, blue, alpha).uv(texu, texv).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, 0.0F, 1.0F, 0.0F).endVertex();
+    private static void addVertex(Matrix4f pose, Matrix3f normal, VertexConsumer builder, float red, float green, float blue, float alpha, float y, float x, float z, float u, float v) {
+        builder.vertex(pose, x, y, z).color(red, green, blue, alpha).uv(u, v).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, 0.0F, 1.0F, 0.0F).endVertex();
     }
 
     private static RenderType createRenderType() {
