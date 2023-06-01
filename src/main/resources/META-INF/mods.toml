@@ -4,7 +4,7 @@ modLoader = "javafml"
 [[mods]]
 displayName = "LootBeams"
 modId = "lootbeams"
-version = "1.18.1"
+version = "1.18.2"
 logoFile = "banner.png"
 displayURL = "https://www.curseforge.com/minecraft/mc-mods/loot-beams"
 authors = "shiroroku(elise)"
