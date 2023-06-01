@@ -141,7 +141,7 @@ public class LootBeamRenderer extends RenderType {
     }
 
     static boolean compatRarityCheck(ItemEntity item, boolean isRare) {
-        return isRare || item.getItem().getRarity() != Rarity.COMMON || !ApotheosisCompat.getRarityName(item.getItem()).equals("common");
+        return isRare || item.getItem().getRarity() != Rarity.COMMON || (ModList.get().isLoaded("apotheosis") && !ApotheosisCompat.getRarityName(item.getItem()).equals("common"));
     }
 
     private static void renderParticles(float pticks, ItemEntity item, int entityTime, float r, float g, float b) {
