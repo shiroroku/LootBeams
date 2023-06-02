@@ -24,12 +24,9 @@ public class EntityRendererMixin<T extends Entity> {
             entity = ie;
         }
     }
-    
+
     @ModifyVariable(at = @At("HEAD"), method = "render", ordinal = 0, argsOnly = true)
     public int render(int p_114490_) {
-        if (entity != null) {
-            p_114490_ = ClientSetup.overrideLight(entity, p_114490_);
-        }
-        return p_114490_;
+        return entity == null ? p_114490_ : ClientSetup.overrideLight(entity, p_114490_);
     }
 }

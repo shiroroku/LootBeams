@@ -18,14 +18,14 @@ import java.util.List;
 
 @Mod(LootBeams.MODID)
 public class LootBeams {
-	
+
 	public static final String MODID = "lootbeams";
 	public static final Logger LOGGER = LogManager.getLogger();
-	public static List<ItemStack> CRASH_BLACKLIST = new ArrayList<>();
-	
+	public static final List<ItemStack> CRASH_BLACKLIST = new ArrayList<>();
+
 	public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, MODID);
 	public static final RegistryObject<SoundEvent> LOOT_DROP = register(new SoundEvent(new ResourceLocation(MODID, "loot_drop")));
-	
+
 	public LootBeams() {
 		//ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.DISPLAYTEST, () -> Pair.of(() -> FMLNetworkConstants.IGNORESERVERONLY, (a, b) -> true));
 		ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, com.lootbeams.Configuration.CLIENT_CONFIG);
