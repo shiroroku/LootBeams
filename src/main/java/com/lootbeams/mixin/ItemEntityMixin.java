@@ -12,16 +12,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class ItemEntityMixin {
     @Unique
     private boolean hasPlayedSound = false;
-    
+
     @Inject(method = "tick", at = @At("TAIL"))
     private void onTick(CallbackInfo ci) {
-        ItemEntity _this = (ItemEntity) (Object) this;
-        if (!hasPlayedSound && (_this.isOnGround() || (_this.isOnGround() && (_this.tickCount < 10 && _this.tickCount > 3)))) {
-            ClientSetup.playDropSound(_this);
+        ItemEntity itemEntity = (ItemEntity) (Object) this;
+        if (!hasPlayedSound && (itemEntity.isOnGround() || (itemEntity.isOnGround() && (itemEntity.tickCount < 10 && itemEntity.tickCount > 3)))) {
+            ClientSetup.playDropSound(itemEntity);
             hasPlayedSound = true;
         }
-        
-        if (hasPlayedSound && !_this.isOnGround()) {
+
+        if(hasPlayedSound && !itemEntity.isOnGround()){
             hasPlayedSound = false;
         }
     }
