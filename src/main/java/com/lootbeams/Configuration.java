@@ -17,28 +17,35 @@ public class Configuration {
 
 	public static final ForgeConfigSpec CLIENT_CONFIG;
 
+	public static final ForgeConfigSpec.BooleanValue RENDER_NAME_COLOR;
+	public static final ForgeConfigSpec.BooleanValue RENDER_RARITY_COLOR;
+	public static final ForgeConfigSpec.DoubleValue RENDER_DISTANCE;
+	public static final ForgeConfigSpec.BooleanValue REQUIRE_ON_GROUND;
+	public static final ForgeConfigSpec.ConfigValue<List<String>> COLOR_OVERRIDES;
+	public static final ForgeConfigSpec.DoubleValue BEAM_RADIUS;
+	public static final ForgeConfigSpec.DoubleValue BEAM_HEIGHT;
+	public static final ForgeConfigSpec.DoubleValue BEAM_Y_OFFSET;
+	public static final ForgeConfigSpec.DoubleValue BEAM_ALPHA;
+	public static final ForgeConfigSpec.BooleanValue SOLID_BEAM;
+	public static final ForgeConfigSpec.BooleanValue GLOWING_BEAM;
+	public static final ForgeConfigSpec.BooleanValue ANIMATE_GLOW;
+	public static final ForgeConfigSpec.BooleanValue GLOW_EFFECT;
+	public static final ForgeConfigSpec.DoubleValue GLOW_EFFECT_RADIUS;
+	public static final ForgeConfigSpec.BooleanValue WHITE_CENTER;
+
+	public static final ForgeConfigSpec.BooleanValue PARTICLES;
+	public static final ForgeConfigSpec.DoubleValue PARTICLE_SIZE;
+	public static final ForgeConfigSpec.DoubleValue PARTICLE_SPEED;
+	public static final ForgeConfigSpec.DoubleValue PARTICLE_RADIUS;
+	public static final ForgeConfigSpec.DoubleValue PARTICLE_COUNT;
+	public static final ForgeConfigSpec.IntValue PARTICLE_LIFETIME;
+	public static final ForgeConfigSpec.BooleanValue PARTICLE_RARE_ONLY;
+
 	public static final ForgeConfigSpec.BooleanValue ALL_ITEMS;
 	public static final ForgeConfigSpec.BooleanValue ONLY_EQUIPMENT;
 	public static final ForgeConfigSpec.BooleanValue ONLY_RARE;
 	public static final ForgeConfigSpec.ConfigValue<List<String>> WHITELIST;
 	public static final ForgeConfigSpec.ConfigValue<List<String>> BLACKLIST;
-	public static final ForgeConfigSpec.ConfigValue<List<String>> COLOR_OVERRIDES;
-
-	public static final ForgeConfigSpec.BooleanValue RENDER_NAME_COLOR;
-	public static final ForgeConfigSpec.BooleanValue RENDER_RARITY_COLOR;
-	public static final ForgeConfigSpec.DoubleValue BEAM_RADIUS;
-	public static final ForgeConfigSpec.DoubleValue BEAM_HEIGHT;
-	public static final ForgeConfigSpec.DoubleValue BEAM_Y_OFFSET;
-	public static final ForgeConfigSpec.DoubleValue BEAM_ALPHA;
-
-	public static final ForgeConfigSpec.BooleanValue SOLID_BEAM;
-	public static final ForgeConfigSpec.DoubleValue RENDER_DISTANCE;
-
-	public static final ForgeConfigSpec.BooleanValue GLOW_EFFECT;
-	public static final ForgeConfigSpec.DoubleValue GLOW_EFFECT_RADIUS;
-	public static final ForgeConfigSpec.BooleanValue ANIMATE_GLOW;
-
-	public static final ForgeConfigSpec.BooleanValue PARTICLES;
 
 	public static final ForgeConfigSpec.BooleanValue BORDERS;
 	public static final ForgeConfigSpec.BooleanValue RENDER_NAMETAGS;
@@ -52,17 +59,7 @@ public class Configuration {
 	public static final ForgeConfigSpec.BooleanValue DMCLOOT_COMPAT_RARITY;
 	public static final ForgeConfigSpec.ConfigValue<List<String>> CUSTOM_RARITIES;
 	public static final ForgeConfigSpec.BooleanValue WHITE_RARITIES;
-
-	public static final ForgeConfigSpec.BooleanValue GLOWING_BEAM;
-
 	public static final ForgeConfigSpec.BooleanValue VANILLA_RARITIES;
-	public static final ForgeConfigSpec.BooleanValue WHITE_CENTER;
-	public static final ForgeConfigSpec.DoubleValue PARTICLE_SIZE;
-	public static final ForgeConfigSpec.DoubleValue PARTICLE_SPEED;
-	public static final ForgeConfigSpec.DoubleValue PARTICLE_RADIUS;
-	public static final ForgeConfigSpec.DoubleValue PARTICLE_COUNT;
-	public static final ForgeConfigSpec.IntValue PARTICLE_LIFETIME;
-	public static final ForgeConfigSpec.BooleanValue PARTICLE_RARE_ONLY;
 
 	public static final ForgeConfigSpec.BooleanValue SOUND;
 	public static final ForgeConfigSpec.DoubleValue SOUND_VOLUME;
@@ -79,6 +76,7 @@ public class Configuration {
 		RENDER_NAME_COLOR = clientBuilder.comment("If beams should be colored the same as the Items name (excludes name colors from rarity). This has priority over render_rarity_color.").define("render_name_color", true);
 		RENDER_RARITY_COLOR = clientBuilder.comment("If beams should be colored the same as the Items rarity.").define("render_rarity_color", true);
 		RENDER_DISTANCE = clientBuilder.comment("How close the player has to be to see the beam. (note: ItemEntities stop rendering at 24 blocks, so that is the limit for beams)").defineInRange("render_distance", 24D, 0D, 24D);
+		REQUIRE_ON_GROUND = clientBuilder.comment("If the item needs to be on the ground to render the Loot Beam.").define("require_ground", true);
 		COLOR_OVERRIDES = clientBuilder.comment("Overrides an item's beam color with hex color. Must follow the specific format: (registryname=hexcolor) Or (#tagname=hexcolor). Example: \"minecraft:stone=0xFFFFFF\". This also accepts modids.").define("color_overrides", new ArrayList<>());
 
 		clientBuilder.comment("Beam Configuration").push("Beam");
@@ -138,50 +136,51 @@ public class Configuration {
 		SOUND_ONLY_BLACKLIST = clientBuilder.comment("Registry names of items that sounds should NOT play on. This has priority over everything. You can also specify modids for a whole mod's items.").define("sound_blacklist", new ArrayList<>());
 		clientBuilder.pop();
 
-
-
-		clientBuilder.pop();
-
 		CLIENT_CONFIG = clientBuilder.build();
 	}
 
 	public static Color getColorFromItemOverrides(Item i) {
 		List<String> overrides = COLOR_OVERRIDES.get();
-		if (!overrides.isEmpty()) {
-			for (String unparsed : overrides.stream().filter(s -> !s.isEmpty()).toList()) {
-				String[] configValue = unparsed.split("=");
-				if (configValue.length == 2) {
-					String nameIn = configValue[0];
-					ResourceLocation registry = ResourceLocation.tryParse(nameIn.replace("#", ""));
-					Color colorIn;
-					try {
-						colorIn = Color.decode(configValue[1]);
-					} catch (Exception e) {
-						LootBeams.LOGGER.error(String.format("Color overrides error! \"%s\" is not a valid hex color for \"%s\"", configValue[1], nameIn));
-						return null;
-					}
+		if (overrides.isEmpty()) {
+			return null;
+		}
 
-					//Modid
-					if (!nameIn.contains(":") && ForgeRegistries.ITEMS.getKey(i).getNamespace().equals(nameIn)) {
-						return colorIn;
-					}
+		for (String unparsed : overrides.stream().filter(s -> !s.isEmpty()).toList()) {
+			String[] configValue = unparsed.split("=");
+			if (configValue.length != 2) {
+				continue;
+			}
 
-					if (registry != null) {
-						//Tag
-						if (nameIn.startsWith("#") && ForgeRegistries.ITEMS.tags().getTag(TagKey.create(Registry.ITEM_REGISTRY, registry)).contains(i)) {
-							return colorIn;
-						}
+			String nameIn = configValue[0];
+			ResourceLocation registry = ResourceLocation.tryParse(nameIn.replace("#", ""));
+			Color colorIn;
+			try {
+				colorIn = Color.decode(configValue[1]);
+			} catch (Exception e) {
+				LootBeams.LOGGER.error(String.format("Color overrides error! \"%s\" is not a valid hex color for \"%s\"", configValue[1], nameIn));
+				return null;
+			}
 
-						//Item
-						Item registryItem = ForgeRegistries.ITEMS.getValue(registry);
-						if (registryItem != null && registryItem.asItem() == i) {
-							return colorIn;
-						}
+			// Mod id
+			if (!nameIn.contains(":") && ForgeRegistries.ITEMS.getKey(i).getNamespace().equals(nameIn)) {
+				return colorIn;
+			}
 
-					}
+			if (registry != null) {
+				// Tag
+				if (nameIn.startsWith("#") && ForgeRegistries.ITEMS.tags().getTag(TagKey.create(Registry.ITEM_REGISTRY, registry)).contains(i)) {
+					return colorIn;
 				}
+
+				// Item
+				Item registryItem = ForgeRegistries.ITEMS.getValue(registry);
+				if (registryItem != null && registryItem.asItem() == i) {
+					return colorIn;
+				}
+
 			}
 		}
+
 		return null;
 	}
 }

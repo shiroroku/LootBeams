@@ -18,18 +18,16 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 public class EntityRendererMixin<T extends Entity> {
     @Unique
     ItemEntity entity;
+
     @Inject(at = @At("HEAD"), method = "render", locals = LocalCapture.CAPTURE_FAILHARD)
     public void render(T p_114485_, float p_114486_, float p_114487_, PoseStack p_114488_, MultiBufferSource p_114489_, int p_114490_, CallbackInfo ci) {
-        if ((Entity) p_114485_ instanceof ItemEntity ie) {
+        if (p_114485_ instanceof ItemEntity ie) {
             entity = ie;
         }
     }
 
     @ModifyVariable(at = @At("HEAD"), method = "render", ordinal = 0, argsOnly = true)
-    public int render(int p_114490_) {
-        if(entity != null){
-            p_114490_ = ClientSetup.overrideLight(entity, p_114490_);
-        }
-        return p_114490_;
+    public int render(int light) {
+        return entity != null ? ClientSetup.overrideLight(entity, light) : light;
     }
 }

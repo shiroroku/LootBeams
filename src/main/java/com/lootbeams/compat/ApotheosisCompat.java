@@ -7,7 +7,7 @@ public class ApotheosisCompat {
 
     public static String getRarityName(ItemStack stack){
         if (!isApotheosisItem(stack) || AffixHelper.getRarity(stack) == null) {
-            return "null";
+            return "common";
         }
 
         return AffixHelper.getRarity(stack).id().toLowerCase();
