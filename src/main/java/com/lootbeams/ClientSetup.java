@@ -1,7 +1,9 @@
 package com.lootbeams;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.sounds.WeighedSoundEvents;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ArmorItem;
@@ -68,7 +70,10 @@ public class ClientSetup {
 				|| (Configuration.SOUND_ONLY_EQUIPMENT.get() && isEquipmentItem(item))
 				|| (Configuration.SOUND_ONLY_RARE.get() && LootBeamRenderer.compatRarityCheck(itemEntity, false))
 				|| isItemInRegistryList(Configuration.SOUND_ONLY_WHITELIST.get(), item)) {
-			itemEntity.level.playSound(null, itemEntity, LootBeams.LOOT_DROP.get(), SoundSource.AMBIENT, Configuration.SOUND_VOLUME.get().floatValue(), ((itemEntity.level.random.nextFloat() - itemEntity.level.random.nextFloat()) * 0.7F + 1.0F) * 2.0F);
+			WeighedSoundEvents sound = Minecraft.getInstance().getSoundManager().getSoundEvent(LootBeams.LOOT_DROP);
+			if(sound != null) {
+				Minecraft.getInstance().level.playSound(Minecraft.getInstance().player, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), new SoundEvent(LootBeams.LOOT_DROP), SoundSource.AMBIENT, 0.1f * Configuration.SOUND_VOLUME.get().floatValue(), 1.0f);
+			}
 		}
 	}
 
@@ -90,16 +95,10 @@ public class ClientSetup {
 		}
 	}
 
-	/**
-	 * @return If the {@link Item} is an "Equipment Item"
-	 */
 	public static boolean isEquipmentItem(Item item) {
 		return item instanceof TieredItem || item instanceof ArmorItem || item instanceof ShieldItem || item instanceof BowItem || item instanceof CrossbowItem;
 	}
 
-	/**
-	 * @return Checks if the given {@link Item} is in the given {@link List} of registry names.
-	 */
 	private static boolean isItemInRegistryList(List<String> registryNames, Item item) {
 		if (registryNames.isEmpty()) {
 			return false;
