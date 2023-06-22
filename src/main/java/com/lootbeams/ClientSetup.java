@@ -27,10 +27,12 @@ import java.util.List;
 @Mod.EventBusSubscriber(modid = LootBeams.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class ClientSetup {
 
-	public static void init(FMLClientSetupEvent ignored) {
-		MinecraftForge.EVENT_BUS.addListener(ClientSetup::onRenderNameplate);
-		MinecraftForge.EVENT_BUS.addListener(ClientSetup::onItemCreation);
-		MinecraftForge.EVENT_BUS.addListener(ClientSetup::entityRemoval);
+	public static void init(FMLClientSetupEvent event) {
+		event.enqueueWork(() -> {
+			MinecraftForge.EVENT_BUS.addListener(ClientSetup::onRenderNameplate);
+			MinecraftForge.EVENT_BUS.addListener(ClientSetup::onItemCreation);
+			MinecraftForge.EVENT_BUS.addListener(ClientSetup::entityRemoval);
+		});
 	}
 
 	public static void onItemCreation(EntityJoinLevelEvent event){
@@ -71,7 +73,7 @@ public class ClientSetup {
 				|| (Configuration.SOUND_ONLY_RARE.get() && LootBeamRenderer.compatRarityCheck(itemEntity, false))
 				|| isItemInRegistryList(Configuration.SOUND_ONLY_WHITELIST.get(), item)) {
 			WeighedSoundEvents sound = Minecraft.getInstance().getSoundManager().getSoundEvent(LootBeams.LOOT_DROP);
-			if(sound != null) {
+			if(sound != null && Minecraft.getInstance().level != null) {
 				Minecraft.getInstance().level.playSound(Minecraft.getInstance().player, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), new SoundEvent(LootBeams.LOOT_DROP), SoundSource.AMBIENT, 0.1f * Configuration.SOUND_VOLUME.get().floatValue(), 1.0f);
 			}
 		}
