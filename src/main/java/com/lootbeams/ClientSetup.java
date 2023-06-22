@@ -28,9 +28,11 @@ import java.util.List;
 public class ClientSetup {
 
 	public static void init(FMLClientSetupEvent ignored) {
-		MinecraftForge.EVENT_BUS.addListener(ClientSetup::onRenderNameplate);
-		MinecraftForge.EVENT_BUS.addListener(ClientSetup::onItemCreation);
-		MinecraftForge.EVENT_BUS.addListener(ClientSetup::entityRemoval);
+		ignored.enqueueWork(() -> {
+			MinecraftForge.EVENT_BUS.addListener(ClientSetup::onRenderNameplate);
+			MinecraftForge.EVENT_BUS.addListener(ClientSetup::onItemCreation);
+			MinecraftForge.EVENT_BUS.addListener(ClientSetup::entityRemoval);
+		});
 	}
 
 	public static void onItemCreation(EntityJoinLevelEvent event){
