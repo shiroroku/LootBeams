@@ -73,7 +73,7 @@ public class ClientSetup {
 				|| (Configuration.SOUND_ONLY_RARE.get() && LootBeamRenderer.compatRarityCheck(itemEntity, false))
 				|| isItemInRegistryList(Configuration.SOUND_ONLY_WHITELIST.get(), item)) {
 			WeighedSoundEvents sound = Minecraft.getInstance().getSoundManager().getSoundEvent(LootBeams.LOOT_DROP);
-			if(sound != null) {
+			if(sound != null && Minecraft.getInstance().level != null) {
 				Minecraft.getInstance().level.playSound(Minecraft.getInstance().player, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), new SoundEvent(LootBeams.LOOT_DROP), SoundSource.AMBIENT, 0.1f * Configuration.SOUND_VOLUME.get().floatValue(), 1.0f);
 			}
 		}
