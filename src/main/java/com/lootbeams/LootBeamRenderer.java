@@ -33,14 +33,13 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.fml.ModList;
 
 import java.awt.*;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class LootBeamRenderer extends RenderType {
-    public static final Map<ItemEntity, List<Component>> TOOLTIP_CACHE = new java.util.HashMap<>();
-    public static final List<ItemEntity> LIGHT_CACHE = new java.util.ArrayList<>();
+    public static final Map<ItemEntity, List<Component>> TOOLTIP_CACHE = new ConcurrentHashMap<>();
+    public static final List<ItemEntity> LIGHT_CACHE = new ArrayList<>();
 
     /**
      * ISSUES:
