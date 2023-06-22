@@ -18,7 +18,7 @@ public class ApotheosisCompat {
             return GemItem.getLootRarity(stack).id().toLowerCase();
         }
         LootRarity rarity = AffixHelper.getRarity(stack);
-        if(rarity == null) return "null";
+        if(rarity == null) return stack.getRarity().name();
         return rarity.id().toLowerCase();
     }
 
