@@ -16,12 +16,12 @@ public class ItemEntityMixin {
     @Inject(method = "tick", at = @At("TAIL"))
     private void onTick(CallbackInfo ci) {
         ItemEntity itemEntity = (ItemEntity) (Object) this;
-        if (!hasPlayedSound && (itemEntity.isOnGround() || (itemEntity.isOnGround() && (itemEntity.tickCount < 10 && itemEntity.tickCount > 3)))) {
+        if (!hasPlayedSound && (itemEntity.onGround() || (itemEntity.onGround() && (itemEntity.tickCount < 10 && itemEntity.tickCount > 3)))) {
             ClientSetup.playDropSound(itemEntity);
             hasPlayedSound = true;
         }
 
-        if(hasPlayedSound && !itemEntity.isOnGround()){
+        if(hasPlayedSound && !itemEntity.onGround()){
             hasPlayedSound = false;
         }
     }

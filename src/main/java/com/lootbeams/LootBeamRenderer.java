@@ -1,17 +1,15 @@
 package com.lootbeams;
 
 import com.google.common.collect.Lists;
-import com.lootbeams.compat.ApotheosisCompat;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import com.mojang.math.Matrix3f;
-import com.mojang.math.Matrix4f;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderStateShard;
@@ -31,6 +29,9 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.fml.ModList;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 import java.awt.*;
 import java.util.*;
@@ -97,12 +98,12 @@ public class LootBeamRenderer extends RenderType {
         //Render main beam
         stack.pushPose();
         float rotation = (float) Math.floorMod(worldtime, 40L) + pticks;
-        stack.mulPose(Vector3f.YP.rotationDegrees(rotation * 2.25F - 45.0F));
+        stack.mulPose(Axis.YP.rotationDegrees(rotation * 2.25F - 45.0F));
         stack.translate(0, yOffset, 0);
         stack.translate(0, 1, 0);
-        stack.mulPose(Vector3f.XP.rotationDegrees(180));
+        stack.mulPose(Axis.XP.rotationDegrees(180));
         renderPart(stack, buffer.getBuffer(LOOT_BEAM_RENDERTYPE), R, G, B, beamAlpha, beamHeight, 0.0F, beamRadius, beamRadius, 0.0F, -beamRadius, 0.0F, 0.0F, -beamRadius, false);
-        stack.mulPose(Vector3f.XP.rotationDegrees(-180));
+        stack.mulPose(Axis.XP.rotationDegrees(-180));
         renderPart(stack, buffer.getBuffer(LOOT_BEAM_RENDERTYPE), R, G, B, beamAlpha, beamHeight, 0.0F, beamRadius, beamRadius, 0.0F, -beamRadius, 0.0F, 0.0F, -beamRadius, Configuration.SOLID_BEAM.get());
         stack.popPose();
 
@@ -110,9 +111,9 @@ public class LootBeamRenderer extends RenderType {
         stack.pushPose();
         stack.translate(0, yOffset, 0);
         stack.translate(0, 1, 0);
-        stack.mulPose(Vector3f.XP.rotationDegrees(180));
+        stack.mulPose(Axis.XP.rotationDegrees(180));
         renderPart(stack, buffer.getBuffer(LOOT_BEAM_RENDERTYPE), R, G, B, beamAlpha * 0.4f, beamHeight, -glowRadius, -glowRadius, glowRadius, -glowRadius, -beamRadius, glowRadius, glowRadius, glowRadius, false);
-        stack.mulPose(Vector3f.XP.rotationDegrees(-180));
+        stack.mulPose(Axis.XP.rotationDegrees(-180));
         renderPart(stack, buffer.getBuffer(LOOT_BEAM_RENDERTYPE), R, G, B, beamAlpha * 0.4f, beamHeight, -glowRadius, -glowRadius, glowRadius, -glowRadius, -beamRadius, glowRadius, glowRadius, glowRadius, Configuration.SOLID_BEAM.get());
         stack.popPose();
 
@@ -120,14 +121,14 @@ public class LootBeamRenderer extends RenderType {
             stack.pushPose();
             stack.translate(0, yOffset, 0);
             stack.translate(0, 1, 0);
-            stack.mulPose(Vector3f.XP.rotationDegrees(180));
+            stack.mulPose(Axis.XP.rotationDegrees(180));
             renderPart(stack, buffer.getBuffer(LOOT_BEAM_RENDERTYPE), R, G, B, beamAlpha, beamHeight, 0.0F, beamRadius * 0.4f, beamRadius * 0.4f, 0.0F, -beamRadius * 0.4f, 0.0F, 0.0F, -beamRadius * 0.4f, false);
-            stack.mulPose(Vector3f.XP.rotationDegrees(-180));
+            stack.mulPose(Axis.XP.rotationDegrees(-180));
             renderPart(stack, buffer.getBuffer(LOOT_BEAM_RENDERTYPE), R, G, B, beamAlpha, beamHeight, 0.0F, beamRadius * 0.4f, beamRadius * 0.4f, 0.0F, -beamRadius * 0.4f, 0.0F, 0.0F, -beamRadius * 0.4f, Configuration.SOLID_BEAM.get());
             stack.popPose();
         }
 
-        if (Configuration.GLOW_EFFECT.get() && item.isOnGround()) {
+        if (Configuration.GLOW_EFFECT.get() && item.onGround()) {
             stack.pushPose();
             stack.translate(0, 0.001f, 0);
             float radius = Configuration.GLOW_EFFECT_RADIUS.get().floatValue();
@@ -162,11 +163,11 @@ public class LootBeamRenderer extends RenderType {
 
     static boolean compatRarityCheck(ItemEntity item, boolean shouldRender) {
         if(ModList.get().isLoaded("apotheosis")){
-            if(ApotheosisCompat.isApotheosisItem(item.getItem())){
-                if(!ApotheosisCompat.getRarityName(item.getItem()).equals("common") || item.getItem().getRarity() != Rarity.COMMON){
-                    shouldRender = true;
-                }
-            }
+//            if(ApotheosisCompat.isApotheosisItem(item.getItem())){
+//                if(!ApotheosisCompat.getRarityName(item.getItem()).equals("common") || item.getItem().getRarity() != Rarity.COMMON){
+//                    shouldRender = true;
+//                }
+//            }
         } else {
             if (item.getItem().getRarity() != Rarity.COMMON) {
                 shouldRender = true;
@@ -283,9 +284,9 @@ public class LootBeamRenderer extends RenderType {
                 backgroundColor = new Color(rarityColor.getRed(), rarityColor.getGreen(), rarityColor.getBlue(), (int) (255 * backgroundAlpha)).getRGB();
                 String rarity = item.getItem().getRarity().name().toLowerCase();
                 if (ModList.get().isLoaded("apotheosis")) {
-                    if (ApotheosisCompat.isApotheosisItem(item.getItem())) {
-                        rarity = ApotheosisCompat.getRarityName(item.getItem());
-                    }
+//                    if (ApotheosisCompat.isApotheosisItem(item.getItem())) {
+//                        rarity = ApotheosisCompat.getRarityName(item.getItem());
+//                    }
                 }
                 renderText(fontrenderer, stack, buffer, capitalize(rarity), foregroundColor, backgroundColor, backgroundAlpha);
             }
@@ -308,17 +309,17 @@ public class LootBeamRenderer extends RenderType {
             int bg = new Color(0, 0, 0, (int) (255 * backgroundAlpha)).getRGB();
 
             //Draws background (border) text
-            fontRenderer.draw(stack, text, w + 1f, 0, bg);
-            fontRenderer.draw(stack, text, w - 1f, 0, bg);
-            fontRenderer.draw(stack, text, w, 1f, bg);
-            fontRenderer.draw(stack, text, w, -1f, bg);
-
+            GuiGraphics guiGraphics = new GuiGraphics(Minecraft.getInstance(), Minecraft.getInstance().renderBuffers().bufferSource());
+            guiGraphics.drawCenteredString(fontRenderer, text,(int) w+1, 0, bg);
+            guiGraphics.drawCenteredString(fontRenderer, text,(int) w-1, 0, bg);
+            guiGraphics.drawCenteredString(fontRenderer, text,(int) w, 1, bg);
+            guiGraphics.drawCenteredString(fontRenderer, text,(int) w, -1, bg);
             //Draws foreground text in front of border
             stack.translate(0.0D, 0.0D, -0.01D);
-            fontRenderer.draw(stack, text, w, 0, foregroundColor);
+            guiGraphics.drawCenteredString(fontRenderer, text,(int) w, 0, foregroundColor);
             stack.translate(0.0D, 0.0D, 0.01D);
         } else {
-            fontRenderer.drawInBatch(text, (float) (-fontRenderer.width(text) / 2), 0f, foregroundColor, false, stack.last().pose(), buffer, false, backgroundColor, 15728864);
+            fontRenderer.drawInBatch(text, (float) (-fontRenderer.width(text) / 2), 0f, foregroundColor, false, stack.last().pose(), buffer, Font.DisplayMode.NORMAL, backgroundColor, 15728864);
         }
     }
 

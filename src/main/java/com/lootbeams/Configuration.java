@@ -1,6 +1,7 @@
 package com.lootbeams;
 
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -177,7 +178,7 @@ public class Configuration {
 					if (registry != null) {
 						//Tag
 						if (nameIn.startsWith("#")) {
-							if (ForgeRegistries.ITEMS.tags().getTag(TagKey.create(Registry.ITEM_REGISTRY, registry)).contains(i)) {
+							if (ForgeRegistries.ITEMS.tags().getTag(TagKey.create(BuiltInRegistries.ITEM.key(), registry)).contains(i)) {
 								return colorIn;
 							}
 						}
