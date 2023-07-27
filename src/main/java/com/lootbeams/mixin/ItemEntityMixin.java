@@ -16,6 +16,10 @@ public class ItemEntityMixin {
     @Inject(method = "tick", at = @At("TAIL"))
     private void onTick(CallbackInfo ci) {
         ItemEntity itemEntity = (ItemEntity) (Object) this;
+        //Sounds are clientside, and we use Minecraft.getInstance() in ClientSetup.playDropSound
+        if(!itemEntity.level.isClientSide()){
+            return;
+        }
         if (!hasPlayedSound && (itemEntity.isOnGround() || (itemEntity.isOnGround() && (itemEntity.tickCount < 10 && itemEntity.tickCount > 3)))) {
             ClientSetup.playDropSound(itemEntity);
             hasPlayedSound = true;
