@@ -134,7 +134,7 @@ public class Configuration {
 		clientBuilder.pop();
 
 		clientBuilder.comment("Sounds").push("Sounds");
-		SOUND = clientBuilder.comment("If sounds should be played when items are dropped up.").define("play_sounds", true);
+		SOUND = clientBuilder.comment("If sounds should be played when items are dropped up.").define("play_sounds", false);
 		SOUND_VOLUME = clientBuilder.comment("The volume of the sound.").defineInRange("sound_volume", 1D, 0D, 1D);
 		SOUND_ALL_ITEMS = clientBuilder.comment("If sounds should play on all items. Has priority over sound_only_equipment and sound_only_rare.").define("sound_all_items", false);
 		SOUND_ONLY_RARE = clientBuilder.comment("If sounds should only be played on items with rarity.").define("sound_only_rare", true);
