@@ -152,46 +152,46 @@ public class Configuration {
 
 	public static Color getColorFromItemOverrides(Item i) {
 		List<String> overrides = COLOR_OVERRIDES.get();
-		if (overrides.size() > 0) {
-			for (String unparsed : overrides.stream().filter((s) -> (!s.isEmpty())).collect(Collectors.toList())) {
-				String[] configValue = unparsed.split("=");
-				if (configValue.length == 2) {
-					String nameIn = configValue[0];
-					ResourceLocation registry = ResourceLocation.tryParse(nameIn.replace("#", ""));
-					Color colorIn = null;
-					try {
-						colorIn = Color.decode(configValue[1]);
-					} catch (Exception e) {
-						LootBeams.LOGGER.error(String.format("Color overrides error! \"%s\" is not a valid hex color for \"%s\"", configValue[1], nameIn));
-						return null;
-					}
+		if (overrides.isEmpty()) {
+			return null;
+		}
 
-					//Modid
-					if (!nameIn.contains(":")) {
-						if (ForgeRegistries.ITEMS.getKey(i).getNamespace().equals(nameIn)) {
-							return colorIn;
-						}
+		for (String unparsed : overrides.stream().filter(s -> !s.isEmpty()).toList()) {
+			String[] configValue = unparsed.split("=");
+			if (configValue.length != 2) {
+				continue;
+			}
 
-					}
+			String nameIn = configValue[0];
+			ResourceLocation registry = ResourceLocation.tryParse(nameIn.replace("#", ""));
+			Color colorIn;
+			try {
+				colorIn = Color.decode(configValue[1]);
+			} catch (Exception e) {
+				LootBeams.LOGGER.error(String.format("Color overrides error! \"%s\" is not a valid hex color for \"%s\"", configValue[1], nameIn));
+				return null;
+			}
 
-					if (registry != null) {
-						//Tag
-						if (nameIn.startsWith("#")) {
-							if (ForgeRegistries.ITEMS.tags().getTag(TagKey.create(Registry.ITEM_REGISTRY, registry)).contains(i)) {
-								return colorIn;
-							}
-						}
+			// Mod id
+			if (!nameIn.contains(":") && ForgeRegistries.ITEMS.getKey(i).getNamespace().equals(nameIn)) {
+				return colorIn;
+			}
 
-						//Item
-						Item registryItem = ForgeRegistries.ITEMS.getValue(registry);
-						if (registryItem != null && registryItem.asItem() == i) {
-							return colorIn;
-						}
-
-					}
+			if (registry != null) {
+				// Tag
+				if (nameIn.startsWith("#") && ForgeRegistries.ITEMS.tags().getTag(TagKey.create(Registry.ITEM_REGISTRY, registry)).contains(i)) {
+					return colorIn;
 				}
+
+				// Item
+				Item registryItem = ForgeRegistries.ITEMS.getValue(registry);
+				if (registryItem != null && registryItem.asItem() == i) {
+					return colorIn;
+				}
+
 			}
 		}
+
 		return null;
 	}
 }
