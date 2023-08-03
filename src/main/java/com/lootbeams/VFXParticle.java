@@ -1,27 +1,22 @@
 package com.lootbeams;
 
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 public class VFXParticle extends TextureSheetParticle {
-    private final boolean fullbright;
+    private final boolean fullBright;
 
     private boolean stoppedByCollision;
 
     public VFXParticle(ClientLevel clientWorld, TextureAtlasSprite sprite, float r, float g, float b, float a, int lifetime, float size,
-                       Vec3 pos, Vec3 motion, float gravity, boolean collision, boolean fullbright) {
+                       Vec3 pos, Vec3 motion, float gravity, boolean collision, boolean fullBright) {
         super(clientWorld, pos.x, pos.y, pos.z);
         this.setSprite(sprite);
         this.rCol = r;
@@ -35,12 +30,12 @@ public class VFXParticle extends TextureSheetParticle {
         this.zd = motion.z;
         this.gravity = gravity;
         this.hasPhysics = collision;
-        this.fullbright = fullbright;
+        this.fullBright = fullBright;
     }
 
     @Override
     protected int getLightColor(float pPartialTick) {
-        if (this.fullbright) {
+        if (this.fullBright) {
             return LightTexture.pack(15, 15);
         } else {
             return super.getLightColor(pPartialTick);
@@ -68,42 +63,42 @@ public class VFXParticle extends TextureSheetParticle {
 
     @Override
     public void move(double x, double y, double z) {
-        if (!stoppedByCollision) {
-            double dX = x;
-            double dY = y;
-            double dZ = z;
-            if (this.hasPhysics && (x != 0.0D || y != 0.0D || z != 0.0D)) {
-                Vec3 vector3d = Entity.collideBoundingBox(null, new Vec3(x, y, z), this.getBoundingBox(), this.level,
-                        List.of()
-                );
-                x = vector3d.x;
-                y = vector3d.y;
-                z = vector3d.z;
-            }
+        if (stoppedByCollision) {
+            return;
+        }
 
-            if (x != 0.0D || y != 0.0D || z != 0.0D) {
-                this.setBoundingBox(this.getBoundingBox().move(x, y, z));
-                this.setLocationFromBoundingbox();
-            } else {
-                this.stoppedByCollision = true;
-            }
+        double dX = x;
+        double dY = y;
+        double dZ = z;
+        if (this.hasPhysics && (x != 0.0D || y != 0.0D || z != 0.0D)) {
+            Vec3 vector3d = Entity.collideBoundingBox(null, new Vec3(x, y, z), this.getBoundingBox(), this.level, List.of());
+            x = vector3d.x;
+            y = vector3d.y;
+            z = vector3d.z;
+        }
 
-            if (dX != x) {
-                this.xd = 0.0D;
-            }
+        if (x != 0.0D || y != 0.0D || z != 0.0D) {
+            this.setBoundingBox(this.getBoundingBox().move(x, y, z));
+            this.setLocationFromBoundingbox();
+        } else {
+            this.stoppedByCollision = true;
+        }
 
-            if (dY != y) {
-                this.yd = 0.0D;
-            }
+        if (dX != x) {
+            this.xd = 0.0D;
+        }
 
-            if (dZ != z) {
-                this.zd = 0.0D;
-            }
+        if (dY != y) {
+            this.yd = 0.0D;
+        }
+
+        if (dZ != z) {
+            this.zd = 0.0D;
         }
     }
 
     @Override
-    public ParticleRenderType getRenderType() {
+    public @Nonnull ParticleRenderType getRenderType() {
         return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
     }
 }
