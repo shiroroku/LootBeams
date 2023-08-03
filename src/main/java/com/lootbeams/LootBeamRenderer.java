@@ -103,7 +103,7 @@ public class LootBeamRenderer extends RenderType {
         renderPart(stack, buffer.getBuffer(LOOT_BEAM_RENDERTYPE), r, g, b, beamAlpha, beamHeight, 0.0F, beamRadius, beamRadius, 0.0F, -beamRadius, 0.0F, 0.0F, -beamRadius, Configuration.SOLID_BEAM.get());
         stack.popPose();
 
-        //Render glow around main beam
+        // Render glow around main beam
         stack.pushPose();
         stack.translate(0, yOffset, 0);
         stack.translate(0, 1, 0);
