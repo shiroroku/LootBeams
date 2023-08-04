@@ -2,14 +2,17 @@ package com.lootbeams;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.sounds.WeighedSoundEvents;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ShieldItem;
 import net.minecraft.world.item.TieredItem;
 import net.minecraft.world.item.TooltipFlag;
@@ -36,65 +39,80 @@ public class ClientSetup {
 	}
 
 	public static void onItemCreation(EntityJoinLevelEvent event){
-		if (event.getEntity() instanceof ItemEntity ie) {
-			LootBeamRenderer.TOOLTIP_CACHE.computeIfAbsent(ie, itemEntity -> itemEntity.getItem().getTooltipLines(null, TooltipFlag.Default.NORMAL));
-			if (!LootBeamRenderer.LIGHT_CACHE.contains(ie)) {
-				LootBeamRenderer.LIGHT_CACHE.add(ie);
+		if (event.getEntity() instanceof ItemEntity itemEntity) {
+			LootBeamRenderer.TOOLTIP_CACHE.computeIfAbsent(itemEntity, entity -> entity.getItem().getTooltipLines(null, TooltipFlag.Default.NORMAL));
+			if (!LootBeamRenderer.LIGHT_CACHE.contains(itemEntity)) {
+				LootBeamRenderer.LIGHT_CACHE.add(itemEntity);
 			}
 		}
 	}
 
 	public static void entityRemoval(EntityLeaveLevelEvent event) {
-		if (event.getEntity() instanceof ItemEntity ie) {
-			LootBeamRenderer.TOOLTIP_CACHE.remove(ie);
-			LootBeamRenderer.LIGHT_CACHE.remove(ie);
+		if (event.getEntity() instanceof ItemEntity itemEntity) {
+			LootBeamRenderer.TOOLTIP_CACHE.remove(itemEntity);
+			LootBeamRenderer.LIGHT_CACHE.remove(itemEntity);
 		}
 	}
 
-	public static int overrideLight(ItemEntity ie, int light) {
-		if (Configuration.ALL_ITEMS.get()
-				|| (Configuration.ONLY_EQUIPMENT.get() && isEquipmentItem(ie.getItem().getItem()))
-				|| (Configuration.ONLY_RARE.get() && LootBeamRenderer.compatRarityCheck(ie, false))
-				|| (isItemInRegistryList(Configuration.WHITELIST.get(), ie.getItem().getItem()))) {
-			light = 15728640;
-		}
-
-		return light;
+	public static int overrideLight(ItemEntity itemEntity, int light) {
+		return shouldRenderBeam(itemEntity.getItem()) ? 15728640 : light;
 	}
 
 	public static void playDropSound(ItemEntity itemEntity) {
-		if (!Configuration.SOUND.get()) {
+		if (!shouldPlaySound(itemEntity.getItem())) {
 			return;
 		}
 
-		Item item = itemEntity.getItem().getItem();
-		if ((Configuration.SOUND_ALL_ITEMS.get() && !isItemInRegistryList(Configuration.BLACKLIST.get(), item))
-				|| (Configuration.SOUND_ONLY_EQUIPMENT.get() && isEquipmentItem(item))
-				|| (Configuration.SOUND_ONLY_RARE.get() && LootBeamRenderer.compatRarityCheck(itemEntity, false))
-				|| isItemInRegistryList(Configuration.SOUND_ONLY_WHITELIST.get(), item)) {
-			WeighedSoundEvents sound = Minecraft.getInstance().getSoundManager().getSoundEvent(LootBeams.LOOT_DROP);
-			if(sound != null && Minecraft.getInstance().level != null) {
-				Minecraft.getInstance().level.playSound(Minecraft.getInstance().player, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), new SoundEvent(LootBeams.LOOT_DROP), SoundSource.AMBIENT, 0.1f * Configuration.SOUND_VOLUME.get().floatValue(), 1.0f);
-			}
+		WeighedSoundEvents sound = Minecraft.getInstance().getSoundManager().getSoundEvent(LootBeams.LOOT_DROP);
+		if (sound != null && Minecraft.getInstance().level != null) {
+			Minecraft.getInstance().level.playSound(Minecraft.getInstance().player, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), new SoundEvent(LootBeams.LOOT_DROP), SoundSource.AMBIENT, 0.1f * Configuration.SOUND_VOLUME.get().floatValue(), 1.0f);
 		}
 	}
 
 	public static void onRenderNameplate(RenderNameTagEvent event) {
-		if (!(event.getEntity() instanceof ItemEntity itemEntity)
-				|| Minecraft.getInstance().player.distanceToSqr(itemEntity) > Math.pow(Configuration.RENDER_DISTANCE.get(), 2)) {
+		if (!(event.getEntity() instanceof ItemEntity itemEntity)) {
 			return;
 		}
 
-		Item item = itemEntity.getItem().getItem();
-		boolean shouldRender = (Configuration.ALL_ITEMS.get()
-				|| (Configuration.ONLY_EQUIPMENT.get() && isEquipmentItem(item))
-				|| (Configuration.ONLY_RARE.get())
-				|| (isItemInRegistryList(Configuration.WHITELIST.get(), itemEntity.getItem().getItem())))
-				&& !isItemInRegistryList(Configuration.BLACKLIST.get(), itemEntity.getItem().getItem());
-
-		if (shouldRender && (!Configuration.REQUIRE_ON_GROUND.get() || itemEntity.isOnGround())) {
+		if (shouldRenderBeam(itemEntity.getItem()) && (!Configuration.REQUIRE_ON_GROUND.get() || itemEntity.isOnGround())) {
 			LootBeamRenderer.renderLootBeam(event.getPoseStack(), event.getMultiBufferSource(), event.getPartialTick(), itemEntity.level.getGameTime(), itemEntity);
 		}
+	}
+
+	public static boolean shouldPlaySound(ItemStack itemStack) {
+		// SOUND and SOUND_ONLY_BLACKLIST have the highest Priority
+		Item item = itemStack.getItem();
+		if (!Configuration.SOUND.get() || isItemInRegistryList(Configuration.SOUND_ONLY_BLACKLIST.get(), item)) {
+			return false;
+		}
+
+		// If the item must be Rare
+		boolean shouldPlay = !Configuration.SOUND_ONLY_RARE.get() || LootBeamRenderer.compatRarityCheck(itemStack);
+		// If the item must be an Equipment
+		if (Configuration.SOUND_ONLY_EQUIPMENT.get()) {
+			shouldPlay = shouldPlay && isEquipmentItem(item);
+		}
+
+		// SOUND_ALL_ITEMS and SOUND_ONLY_WHITELIST have priority over SOUND_ONLY_RARE and SOUND_ONLY_EQUIPMENT
+		return shouldPlay || Configuration.SOUND_ALL_ITEMS.get() || isItemInRegistryList(Configuration.SOUND_ONLY_WHITELIST.get(), item);
+	}
+
+	public static boolean shouldRenderBeam(ItemStack itemStack) {
+		Item item = itemStack.getItem();
+		// BLACKLIST has the highest Priority
+		if (isItemInRegistryList(Configuration.BLACKLIST.get(), item)) {
+			return false;
+		}
+
+		// If the item must be Rare
+		boolean shouldRender = !Configuration.ONLY_RARE.get() || LootBeamRenderer.compatRarityCheck(itemStack);
+		// If the item must be an Equipment
+		if (Configuration.ONLY_EQUIPMENT.get()) {
+			shouldRender = shouldRender && isEquipmentItem(item);
+		}
+
+		// ALL_ITEMS and WHITELIST have priority over ONLY_RARE and ONLY_EQUIPMENT
+		return shouldRender || Configuration.ALL_ITEMS.get() || isItemInRegistryList(Configuration.WHITELIST.get(), item);
 	}
 
 	public static boolean isEquipmentItem(Item item) {
@@ -107,13 +125,23 @@ public class ClientSetup {
 		}
 
 		for (String id : registryNames.stream().filter(s -> !s.isEmpty()).toList()) {
+			// Mod id
 			if (!id.contains(":") && ForgeRegistries.ITEMS.getKey(item).getNamespace().equals(id)) {
 				return true;
 			}
 
-			ResourceLocation itemResource = ResourceLocation.tryParse(id);
-			if (itemResource != null && ForgeRegistries.ITEMS.getValue(itemResource).asItem() == item.asItem()) {
-				return true;
+			ResourceLocation registry = ResourceLocation.tryParse(id.replace("#", ""));
+			if (registry != null) {
+				// Tag
+				if (id.startsWith("#") && ForgeRegistries.ITEMS.tags().getTag(TagKey.create(Registry.ITEM_REGISTRY, registry)).contains(item)) {
+					return true;
+				}
+
+				// Item
+				Item registryItem = ForgeRegistries.ITEMS.getValue(registry);
+				if (registryItem != null && registryItem.asItem() == item) {
+					return true;
+				}
 			}
 		}
 

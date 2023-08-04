@@ -11,50 +11,65 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Mod.EventBusSubscriber
 public class Configuration {
 
-	public static ForgeConfigSpec CLIENT_CONFIG;
+	public static final ForgeConfigSpec CLIENT_CONFIG;
 
-	public static ForgeConfigSpec.BooleanValue ALL_ITEMS;
-	public static ForgeConfigSpec.BooleanValue ONLY_EQUIPMENT;
-	public static ForgeConfigSpec.BooleanValue ONLY_RARE;
-	public static ForgeConfigSpec.ConfigValue<List<String>> WHITELIST;
-	public static ForgeConfigSpec.ConfigValue<List<String>> BLACKLIST;
-	public static ForgeConfigSpec.ConfigValue<List<String>> COLOR_OVERRIDES;
+	public static final ForgeConfigSpec.BooleanValue RENDER_NAME_COLOR;
+	public static final ForgeConfigSpec.BooleanValue RENDER_RARITY_COLOR;
+	public static final ForgeConfigSpec.DoubleValue RENDER_DISTANCE;
+	public static final ForgeConfigSpec.ConfigValue<List<String>> COLOR_OVERRIDES;
 
-	public static ForgeConfigSpec.BooleanValue RENDER_NAME_COLOR;
-	public static ForgeConfigSpec.BooleanValue RENDER_RARITY_COLOR;
-	public static ForgeConfigSpec.DoubleValue BEAM_RADIUS;
-	public static ForgeConfigSpec.DoubleValue BEAM_HEIGHT;
-	public static ForgeConfigSpec.BooleanValue COMMON_SHORTER_BEAM;
-	public static ForgeConfigSpec.DoubleValue BEAM_Y_OFFSET;
-	public static ForgeConfigSpec.DoubleValue BEAM_ALPHA;
+	public static final ForgeConfigSpec.DoubleValue BEAM_RADIUS;
+	public static final ForgeConfigSpec.DoubleValue BEAM_HEIGHT;
+	public static final ForgeConfigSpec.DoubleValue BEAM_Y_OFFSET;
+	public static final ForgeConfigSpec.BooleanValue COMMON_SHORTER_BEAM;
+	public static final ForgeConfigSpec.DoubleValue BEAM_ALPHA;
+	public static final ForgeConfigSpec.BooleanValue SOLID_BEAM;
+	public static final ForgeConfigSpec.BooleanValue WHITE_CENTER;
+	public static final ForgeConfigSpec.BooleanValue GLOWING_BEAM;
+	public static final ForgeConfigSpec.BooleanValue GLOW_EFFECT;
+	public static final ForgeConfigSpec.DoubleValue GLOW_EFFECT_RADIUS;
+	public static final ForgeConfigSpec.BooleanValue ANIMATE_GLOW;
+	public static final ForgeConfigSpec.BooleanValue REQUIRE_ON_GROUND;
 
-	public static ForgeConfigSpec.BooleanValue SOLID_BEAM;
-	public static ForgeConfigSpec.DoubleValue RENDER_DISTANCE;
-	public static ForgeConfigSpec.BooleanValue REQUIRE_ON_GROUND;
+	public static final ForgeConfigSpec.BooleanValue PARTICLES;
+	public static final ForgeConfigSpec.DoubleValue PARTICLE_SIZE;
+	public static final ForgeConfigSpec.DoubleValue PARTICLE_SPEED;
+	public static final ForgeConfigSpec.DoubleValue PARTICLE_RADIUS;
+	public static final ForgeConfigSpec.DoubleValue PARTICLE_COUNT;
+	public static final ForgeConfigSpec.IntValue PARTICLE_LIFETIME;
+	public static final ForgeConfigSpec.BooleanValue PARTICLE_RARE_ONLY;
 
-	public static ForgeConfigSpec.BooleanValue GLOW_EFFECT;
-	public static ForgeConfigSpec.DoubleValue GLOW_EFFECT_RADIUS;
-	public static ForgeConfigSpec.BooleanValue ANIMATE_GLOW;
+	public static final ForgeConfigSpec.BooleanValue ALL_ITEMS;
+	public static final ForgeConfigSpec.BooleanValue ONLY_RARE;
+	public static final ForgeConfigSpec.BooleanValue ONLY_EQUIPMENT;
+	public static final ForgeConfigSpec.ConfigValue<List<String>> WHITELIST;
+	public static final ForgeConfigSpec.ConfigValue<List<String>> BLACKLIST;
 
-	public static ForgeConfigSpec.BooleanValue PARTICLES;
+	public static final ForgeConfigSpec.BooleanValue BORDERS;
+	public static final ForgeConfigSpec.BooleanValue RENDER_NAMETAGS;
+	public static final ForgeConfigSpec.BooleanValue RENDER_NAMETAGS_ONLOOK;
+	public static final ForgeConfigSpec.BooleanValue RENDER_STACKCOUNT;
+	public static final ForgeConfigSpec.DoubleValue NAMETAG_LOOK_SENSITIVITY;
+	public static final ForgeConfigSpec.DoubleValue NAMETAG_TEXT_ALPHA;
+	public static final ForgeConfigSpec.DoubleValue NAMETAG_BACKGROUND_ALPHA;
+	public static final ForgeConfigSpec.DoubleValue NAMETAG_SCALE;
+	public static final ForgeConfigSpec.DoubleValue NAMETAG_Y_OFFSET;
+	public static final ForgeConfigSpec.BooleanValue DMCLOOT_COMPAT_RARITY;
+	public static final ForgeConfigSpec.ConfigValue<List<String>> CUSTOM_RARITIES;
+	public static final ForgeConfigSpec.BooleanValue WHITE_RARITIES;
+	public static final ForgeConfigSpec.BooleanValue VANILLA_RARITIES;
 
-	public static ForgeConfigSpec.BooleanValue BORDERS;
-	public static ForgeConfigSpec.BooleanValue RENDER_NAMETAGS;
-	public static ForgeConfigSpec.BooleanValue RENDER_NAMETAGS_ONLOOK;
-	public static ForgeConfigSpec.BooleanValue RENDER_STACKCOUNT;
-	public static ForgeConfigSpec.DoubleValue NAMETAG_LOOK_SENSITIVITY;
-	public static ForgeConfigSpec.DoubleValue NAMETAG_TEXT_ALPHA;
-	public static ForgeConfigSpec.DoubleValue NAMETAG_BACKGROUND_ALPHA;
-	public static ForgeConfigSpec.DoubleValue NAMETAG_SCALE;
-	public static ForgeConfigSpec.DoubleValue NAMETAG_Y_OFFSET;
-	public static ForgeConfigSpec.BooleanValue DMCLOOT_COMPAT_RARITY;
-	public static ForgeConfigSpec.ConfigValue<List<String>> CUSTOM_RARITIES;
-	public static ForgeConfigSpec.BooleanValue WHITE_RARITIES;
+	public static final ForgeConfigSpec.BooleanValue SOUND;
+	public static final ForgeConfigSpec.DoubleValue SOUND_VOLUME;
+	public static final ForgeConfigSpec.BooleanValue SOUND_ALL_ITEMS;
+	public static final ForgeConfigSpec.BooleanValue SOUND_ONLY_RARE;
+	public static final ForgeConfigSpec.BooleanValue SOUND_ONLY_EQUIPMENT;
+	public static final ForgeConfigSpec.ConfigValue<List<String>> SOUND_ONLY_WHITELIST;
+	public static final ForgeConfigSpec.ConfigValue<List<String>> SOUND_ONLY_BLACKLIST;
 
 	public static ForgeConfigSpec.BooleanValue GLOWING_BEAM;
 
@@ -139,7 +154,7 @@ public class Configuration {
 		SOUND_ALL_ITEMS = clientBuilder.comment("If sounds should play on all items. Has priority over sound_only_equipment and sound_only_rare.").define("sound_all_items", false);
 		SOUND_ONLY_RARE = clientBuilder.comment("If sounds should only be played on items with rarity.").define("sound_only_rare", true);
 		SOUND_ONLY_EQUIPMENT = clientBuilder.comment("If sounds should only be played on equipment. (Equipment includes: Swords, Tools, Armor, Shields, Bows, Crossbows, Tridents, Arrows, and Fishing Rods)").define("sound_only_equipment", false);
-		SOUND_ONLY_WHITELIST = clientBuilder.comment("Registry names of items that sounds should play on. Example: \"minecraft:stone\", \"minecraft:iron_ingot\", You can also specify modids for a whole mod's items.").define("sound_whitelist", new ArrayList<>());
+		SOUND_ONLY_WHITELIST = clientBuilder.comment("Registry names of items that sounds should play on. This has priority over everything except sound_only_blacklist. Example: \"minecraft:stone\", \"minecraft:iron_ingot\", You can also specify modids for a whole mod's items.").define("sound_whitelist", new ArrayList<>());
 		SOUND_ONLY_BLACKLIST = clientBuilder.comment("Registry names of items that sounds should NOT play on. This has priority over everything. You can also specify modids for a whole mod's items.").define("sound_blacklist", new ArrayList<>());
 		clientBuilder.pop();
 
@@ -150,7 +165,7 @@ public class Configuration {
 		CLIENT_CONFIG = clientBuilder.build();
 	}
 
-	public static Color getColorFromItemOverrides(Item i) {
+	public static Color getColorFromItemOverrides(Item item) {
 		List<String> overrides = COLOR_OVERRIDES.get();
 		if (overrides.isEmpty()) {
 			return null;
@@ -173,19 +188,19 @@ public class Configuration {
 			}
 
 			// Mod id
-			if (!nameIn.contains(":") && ForgeRegistries.ITEMS.getKey(i).getNamespace().equals(nameIn)) {
+			if (!nameIn.contains(":") && ForgeRegistries.ITEMS.getKey(item).getNamespace().equals(nameIn)) {
 				return colorIn;
 			}
 
 			if (registry != null) {
 				// Tag
-				if (nameIn.startsWith("#") && ForgeRegistries.ITEMS.tags().getTag(TagKey.create(Registry.ITEM_REGISTRY, registry)).contains(i)) {
+				if (nameIn.startsWith("#") && ForgeRegistries.ITEMS.tags().getTag(TagKey.create(Registry.ITEM_REGISTRY, registry)).contains(item)) {
 					return colorIn;
 				}
 
 				// Item
 				Item registryItem = ForgeRegistries.ITEMS.getValue(registry);
-				if (registryItem != null && registryItem.asItem() == i) {
+				if (registryItem != null && registryItem.asItem() == item) {
 					return colorIn;
 				}
 

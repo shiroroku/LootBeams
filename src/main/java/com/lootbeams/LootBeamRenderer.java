@@ -24,6 +24,7 @@ import net.minecraft.util.StringDecomposer;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
@@ -57,14 +58,14 @@ public class LootBeamRenderer extends RenderType {
         super(name, format, mode, size, crumble, sorting, enable, disable);
     }
 
-    public static void renderLootBeam(PoseStack stack, MultiBufferSource buffer, float pTicks, long worldTime, ItemEntity item) {
+    public static void renderLootBeam(PoseStack stack, MultiBufferSource buffer, float pTicks, long worldTime, ItemEntity itemEntity) {
         RenderSystem.enableDepthTest();
         float beamAlpha = Configuration.BEAM_ALPHA.get().floatValue();
-        float entityTime = item.tickCount;
+        float entityTime = itemEntity.tickCount;
 
         // Fade out when close
-        if (Minecraft.getInstance().player.distanceToSqr(item) < 2f) {
-            beamAlpha *= Minecraft.getInstance().player.distanceToSqr(item);
+        if (Minecraft.getInstance().player.distanceToSqr(itemEntity) < 2f) {
+            beamAlpha *= Minecraft.getInstance().player.distanceToSqr(itemEntity);
         }
 
         // Don't render beam if its too transparent
@@ -76,13 +77,13 @@ public class LootBeamRenderer extends RenderType {
         float glowRadius = beamRadius + (beamRadius * 0.2f);
         float beamHeight = Configuration.BEAM_HEIGHT.get().floatValue();
         float yOffset = Configuration.BEAM_Y_OFFSET.get().floatValue();
-        if (Configuration.COMMON_SHORTER_BEAM.get() && !compatRarityCheck(item, false)) {
+        if (Configuration.COMMON_SHORTER_BEAM.get() && !compatRarityCheck(itemEntity)) {
             beamHeight *= 0.65f;
             yOffset -= yOffset;
         }
 
 
-        Color color = getItemColor(item);
+        Color color = getItemColor(itemEntity);
         float r = color.getRed() / 255f;
         float g = color.getGreen() / 255f;
         float b = color.getBlue() / 255f;
@@ -124,7 +125,7 @@ public class LootBeamRenderer extends RenderType {
             stack.popPose();
         }
 
-        if (Configuration.GLOW_EFFECT.get() && item.isOnGround()) {
+        if (Configuration.GLOW_EFFECT.get() && itemEntity.isOnGround()) {
             stack.pushPose();
             stack.translate(0, 0.001f, 0);
             float radius = Configuration.GLOW_EFFECT_RADIUS.get().floatValue();
@@ -139,29 +140,32 @@ public class LootBeamRenderer extends RenderType {
         stack.popPose();
 
         if (Configuration.RENDER_NAMETAGS.get()) {
-            renderNameTag(stack, buffer, item, color);
+            renderNameTag(stack, buffer, itemEntity, color);
         }
 
-        if (Configuration.PARTICLES.get() && (!Configuration.PARTICLE_RARE_ONLY.get() || compatRarityCheck(item, false))) {
-            renderParticles(pTicks, item, (int) entityTime, r, g, b);
+        if (Configuration.PARTICLES.get() && (!Configuration.PARTICLE_RARE_ONLY.get() || compatRarityCheck(itemEntity))) {
+            renderParticles(pTicks, itemEntity, (int) entityTime, r, g, b);
         }
 
         RenderSystem.disableDepthTest();
     }
 
-    static boolean compatRarityCheck(ItemEntity item, boolean isRare) {
-        return isRare
-                || item.getItem().getRarity() != Rarity.COMMON
-                || (ModList.get().isLoaded("apotheosis") && ApotheosisCompat.isApotheosisItem(item.getItem()) && !ApotheosisCompat.getRarityName(item.getItem()).equals("common"));
+    static boolean compatRarityCheck(ItemEntity itemEntity) {
+        return compatRarityCheck(itemEntity.getItem());
     }
 
-    private static void renderParticles(float pTicks, ItemEntity item, int entityTime, float r, float g, float b) {
+    static boolean compatRarityCheck(ItemStack itemStack) {
+        return itemStack.getRarity() != Rarity.COMMON
+                || (ModList.get().isLoaded("apotheosis") && ApotheosisCompat.isApotheosisItem(itemStack) && !ApotheosisCompat.getRarityName(itemStack).equals("common"));
+    }
+
+    private static void renderParticles(float pTicks, ItemEntity itemEntity, int entityTime, float r, float g, float b) {
         float particleCount = Math.abs(20- Configuration.PARTICLE_COUNT.get().floatValue());
         if (entityTime % particleCount == 0 && pTicks < 0.3f && !Minecraft.getInstance().isPaused()) {
             addParticle(ModClientEvents.GLOW_TEXTURE, r, g, b, 1.0f, Configuration.PARTICLE_LIFETIME.get(), RANDOM.nextFloat((float) (0.25f * Configuration.PARTICLE_SIZE.get()), (float) (1.1f * Configuration.PARTICLE_SIZE.get())), new Vec3(
-                            RANDOM.nextDouble(item.getX() - Configuration.PARTICLE_RADIUS.get(), item.getX() + Configuration.PARTICLE_RADIUS.get()),
-                            RANDOM.nextDouble(item.getY() - (Configuration.PARTICLE_RADIUS.get()/3f), item.getY() + (Configuration.PARTICLE_RADIUS.get()/3f)),
-                            RANDOM.nextDouble(item.getZ() - Configuration.PARTICLE_RADIUS.get(), item.getZ() + Configuration.PARTICLE_RADIUS.get())),
+                            RANDOM.nextDouble(itemEntity.getX() - Configuration.PARTICLE_RADIUS.get(), itemEntity.getX() + Configuration.PARTICLE_RADIUS.get()),
+                            RANDOM.nextDouble(itemEntity.getY() - (Configuration.PARTICLE_RADIUS.get()/3f), itemEntity.getY() + (Configuration.PARTICLE_RADIUS.get()/3f)),
+                            RANDOM.nextDouble(itemEntity.getZ() - Configuration.PARTICLE_RADIUS.get(), itemEntity.getZ() + Configuration.PARTICLE_RADIUS.get())),
                     new Vec3(RANDOM.nextDouble(-Configuration.PARTICLE_SPEED.get()/2.0f, Configuration.PARTICLE_SPEED.get()/2.0f),
                             RANDOM.nextDouble(Configuration.PARTICLE_SPEED.get()),
                             RANDOM.nextDouble(-Configuration.PARTICLE_SPEED.get()/2.0f, Configuration.PARTICLE_SPEED.get()/2.0f)));
@@ -182,16 +186,16 @@ public class LootBeamRenderer extends RenderType {
         Matrix3f matrixNormal = matrixEntry.normal();
 
         // Draw a quad on the xz plane facing up with a radius of 0.5
-        builder.vertex(matrixPose, -radius, (float) 0, -radius).color(red, green, blue, alpha).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(matrixNormal, 0.0F, 1.0F, 0.0F).endVertex();
-        builder.vertex(matrixPose, -radius, (float) 0, radius).color(red, green, blue, alpha).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(matrixNormal, 0.0F, 1.0F, 0.0F).endVertex();
-        builder.vertex(matrixPose, radius, (float) 0, radius).color(red, green, blue, alpha).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(matrixNormal, 0.0F, 1.0F, 0.0F).endVertex();
-        builder.vertex(matrixPose, radius, (float) 0, -radius).color(red, green, blue, alpha).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(matrixNormal, 0.0F, 1.0F, 0.0F).endVertex();
+        builder.vertex(matrixPose, -radius, 0F, -radius).color(red, green, blue, alpha).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(matrixNormal, 0.0F, 1.0F, 0.0F).endVertex();
+        builder.vertex(matrixPose, -radius, 0F, radius).color(red, green, blue, alpha).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(matrixNormal, 0.0F, 1.0F, 0.0F).endVertex();
+        builder.vertex(matrixPose, radius, 0F, radius).color(red, green, blue, alpha).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(matrixNormal, 0.0F, 1.0F, 0.0F).endVertex();
+        builder.vertex(matrixPose, radius, 0F, -radius).color(red, green, blue, alpha).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(matrixNormal, 0.0F, 1.0F, 0.0F).endVertex();
     }
 
-    private static void renderNameTag(PoseStack stack, MultiBufferSource buffer, ItemEntity ie, Color color) {
+    private static void renderNameTag(PoseStack stack, MultiBufferSource buffer, ItemEntity itemEntity, Color color) {
         // If player is crouching or looking at the item
         Minecraft instance = Minecraft.getInstance();
-        if (!instance.player.isCrouching() && !(Configuration.RENDER_NAMETAGS_ONLOOK.get() && isLookingAt(instance.player, ie, Configuration.NAMETAG_LOOK_SENSITIVITY.get()))) {
+        if (!instance.player.isCrouching() && !(Configuration.RENDER_NAMETAGS_ONLOOK.get() && isLookingAt(instance.player, itemEntity, Configuration.NAMETAG_LOOK_SENSITIVITY.get()))) {
             return;
         }
 
@@ -205,15 +209,16 @@ public class LootBeamRenderer extends RenderType {
         stack.pushPose();
 
         // Render nametags at heights based on player distance
-        stack.translate(0.0D, Math.min(1D, instance.player.distanceToSqr(ie) * 0.025D) + yOffset, 0.0D);
+        stack.translate(0.0D, Math.min(1D, instance.player.distanceToSqr(itemEntity) * 0.025D) + yOffset, 0.0D);
         stack.mulPose(instance.getEntityRenderDispatcher().cameraOrientation());
         stack.scale(-0.02F * nametagScale, -0.02F * nametagScale, 0.02F * nametagScale);
 
         // Render stack counts on nametag
         Font fontRenderer = instance.font;
-        String itemName = StringUtil.stripColor(ie.getItem().getHoverName().getString());
+        ItemStack itemStack = itemEntity.getItem();
+        String itemName = StringUtil.stripColor(itemStack.getHoverName().getString());
         if (Configuration.RENDER_STACKCOUNT.get()) {
-            int count = ie.getItem().getCount();
+            int count = itemStack.getCount();
             if (count > 1) {
                 itemName = itemName + " x" + count;
             }
@@ -228,20 +233,20 @@ public class LootBeamRenderer extends RenderType {
         stack.scale(0.75f, 0.75f, 0.75f);
         boolean textDrawn = false;
         List<Component> tooltip;
-        if (!TOOLTIP_CACHE.containsKey(ie)) {
-            tooltip = ie.getItem().getTooltipLines(null, TooltipFlag.Default.NORMAL);
-            TOOLTIP_CACHE.put(ie, tooltip);
+        if (!TOOLTIP_CACHE.containsKey(itemEntity)) {
+            tooltip = itemStack.getTooltipLines(null, TooltipFlag.Default.NORMAL);
+            TOOLTIP_CACHE.put(itemEntity, tooltip);
         } else {
-            tooltip = TOOLTIP_CACHE.get(ie);
+            tooltip = TOOLTIP_CACHE.get(itemEntity);
         }
 
         if (tooltip.size() >= 2) {
             Component tooltipRarity = tooltip.get(1);
 
             // Render dmcloot rarity small tags
-            if (Configuration.DMCLOOT_COMPAT_RARITY.get() && ModList.get().isLoaded("dmcloot") && ie.getItem().hasTag() && ie.getItem().getTag().contains("dmcloot.rarity")) {
+            if (Configuration.DMCLOOT_COMPAT_RARITY.get() && ModList.get().isLoaded("dmcloot") && itemStack.hasTag() && itemStack.getTag().contains("dmcloot.rarity")) {
                 Color rarityColor = Configuration.WHITE_RARITIES.get() ? Color.WHITE : getRawColor(tooltipRarity);
-                Component translatedRarity = Component.translatable("rarity.dmcloot." + ie.getItem().getTag().getString("dmcloot.rarity"));
+                Component translatedRarity = Component.translatable("rarity.dmcloot." + itemStack.getTag().getString("dmcloot.rarity"));
                 renderText(fontRenderer, stack, buffer, translatedRarity.getString(), rarityColor.getRGB(), backgroundColor, backgroundAlpha);
                 textDrawn = true;
             }
@@ -260,9 +265,9 @@ public class LootBeamRenderer extends RenderType {
             Color rarityColor = getRawColor(tooltip.get(0));
             foregroundColor = new Color(rarityColor.getRed(), rarityColor.getGreen(), rarityColor.getBlue(), (int) (255 * foregroundAlpha)).getRGB();
             backgroundColor = new Color(rarityColor.getRed(), rarityColor.getGreen(), rarityColor.getBlue(), (int) (255 * backgroundAlpha)).getRGB();
-            String rarity = ie.getItem().getRarity().name().toLowerCase();
-            if (ModList.get().isLoaded("apotheosis") && ApotheosisCompat.isApotheosisItem(ie.getItem())) {
-                rarity = ApotheosisCompat.getRarityName(ie.getItem());
+            String rarity = itemStack.getRarity().name().toLowerCase();
+            if (ModList.get().isLoaded("apotheosis") && ApotheosisCompat.isApotheosisItem(itemStack)) {
+                rarity = ApotheosisCompat.getRarityName(itemStack);
             }
             renderText(fontRenderer, stack, buffer, capitalize(rarity), foregroundColor, backgroundColor, backgroundAlpha);
         }
@@ -303,43 +308,46 @@ public class LootBeamRenderer extends RenderType {
     /**
      * Returns the color from the item's name, rarity, tag, or override.
      */
-    private static Color getItemColor(ItemEntity item) {
-        if (LootBeams.CRASH_BLACKLIST.contains(item.getItem())) {
+    private static Color getItemColor(ItemEntity itemEntity) {
+        ItemStack itemStack = itemEntity.getItem();
+        if (LootBeams.CRASH_BLACKLIST.contains(itemStack)) {
             return Color.WHITE;
         }
 
+        Item item = itemStack.getItem();
+
         try {
             // From Config Overrides
-            Color override = Configuration.getColorFromItemOverrides(item.getItem().getItem());
+            Color override = Configuration.getColorFromItemOverrides(item);
             if (override != null) {
                 return override;
             }
 
             // From NBT
-            if (item.getItem().hasTag() && item.getItem().getTag().contains("lootbeams.color")) {
-                return Color.decode(item.getItem().getTag().getString("lootbeams.color"));
+            if (itemStack.hasTag() && itemStack.getTag().contains("lootbeams.color")) {
+                return Color.decode(itemStack.getTag().getString("lootbeams.color"));
             }
 
             // From Name
             if (Configuration.RENDER_NAME_COLOR.get()) {
-                Color nameColor = getRawColor(item.getItem().getHoverName());
+                Color nameColor = getRawColor(itemStack.getHoverName());
                 if (!nameColor.equals(Color.WHITE)) {
                     return nameColor;
                 }
             }
 
             // From Rarity
-            if (Configuration.RENDER_RARITY_COLOR.get() && item.getItem().getRarity().getStyleModifier().apply(Style.EMPTY).getColor() != null) {
-                return new Color(item.getItem().getRarity().getStyleModifier().apply(Style.EMPTY).getColor().getValue());
+            if (Configuration.RENDER_RARITY_COLOR.get() && itemStack.getRarity().getStyleModifier().apply(Style.EMPTY).getColor() != null) {
+                return new Color(itemStack.getRarity().getStyleModifier().apply(Style.EMPTY).getColor().getValue());
             } else {
                 return Color.WHITE;
             }
         } catch (Exception e) {
-            LootBeams.LOGGER.error("Failed to get color for (" + item.getItem().getDisplayName() + "), added to temporary blacklist");
-            LootBeams.CRASH_BLACKLIST.add(item.getItem());
+            LootBeams.LOGGER.error("Failed to get color for (" + itemStack.getDisplayName() + "), added to temporary blacklist");
+            LootBeams.CRASH_BLACKLIST.add(itemStack);
             LootBeams.LOGGER.info("Temporary blacklist is now : ");
-            for (ItemStack s : LootBeams.CRASH_BLACKLIST) {
-                LootBeams.LOGGER.info(s.getDisplayName());
+            for (ItemStack stack : LootBeams.CRASH_BLACKLIST) {
+                LootBeams.LOGGER.info(stack.getDisplayName());
             }
             return Color.WHITE;
         }
