@@ -153,6 +153,7 @@ dependencies {
 
     compileOnly fg.deobf("curse.maven:apotheosis-313970:4724390")
     compileOnly fg.deobf("curse.maven:placebo-283644:4723708")
+    compileOnly fg.deobf("curse.maven:apothic-attributes-898963:4731488")
     // For more info...
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html

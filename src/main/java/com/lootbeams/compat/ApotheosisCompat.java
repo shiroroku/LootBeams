@@ -12,12 +12,6 @@ public class ApotheosisCompat {
 
     public static String getRarityName(ItemStack stack){
         if(!isApotheosisItem(stack)) return null;
-//        if(stack.getItem() instanceof SalvageItem salvageItem){
-//            return LootRarity.
-//        }
-//        if(stack.getItem() instanceof GemItem gemItem){
-//            return GemItem.getGem(gemItem).get().
-//        }
         DynamicHolder<LootRarity> rarity = AffixHelper.getRarity(stack);
         if(rarity.get() == null) return stack.getRarity().name().toLowerCase();
         return rarity.get().toComponent().getString().toLowerCase();

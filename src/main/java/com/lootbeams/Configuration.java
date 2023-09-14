@@ -33,6 +33,7 @@ public class Configuration {
 	public static ForgeConfigSpec.BooleanValue COMMON_SHORTER_BEAM;
 	public static ForgeConfigSpec.DoubleValue BEAM_Y_OFFSET;
 	public static ForgeConfigSpec.DoubleValue BEAM_ALPHA;
+	public static ForgeConfigSpec.DoubleValue BEAM_FADE_DISTANCE;
 
 	public static ForgeConfigSpec.BooleanValue SOLID_BEAM;
 	public static ForgeConfigSpec.DoubleValue RENDER_DISTANCE;
@@ -91,6 +92,7 @@ public class Configuration {
 		BEAM_Y_OFFSET = clientBuilder.comment("The Y-offset of the loot beam.").defineInRange("beam_y_offset", 0.5D, -30D, 30D);
 		COMMON_SHORTER_BEAM = clientBuilder.comment("If the Loot Beam should be shorter for common items.").define("common_shorter_beam", true);
 		BEAM_ALPHA = clientBuilder.comment("Transparency of the Loot Beam.").defineInRange("beam_alpha", 0.75D, 0D, 1D);
+		BEAM_FADE_DISTANCE = clientBuilder.comment("The distance from the player the beam should start fading.").defineInRange("beam_fade_distance", 2D, 0D, 100D);
 		SOLID_BEAM = clientBuilder.comment("If the Loot Beam should use a solid texture or the beacon style texture.").define("solid_beam", true);
 		WHITE_CENTER = clientBuilder.comment("If the Loot Beam should have a white center.").define("white_center", true);
 		GLOWING_BEAM = clientBuilder.comment("If the Loot Beam should be glowing.").define("glowing_beam", true);
