@@ -1,6 +1,7 @@
 package com.lootbeams;
 
 import com.google.common.collect.Lists;
+import com.lootbeams.compat.ApotheosisCompat;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -163,11 +164,11 @@ public class LootBeamRenderer extends RenderType {
 
     static boolean compatRarityCheck(ItemEntity item, boolean shouldRender) {
         if(ModList.get().isLoaded("apotheosis")){
-//            if(ApotheosisCompat.isApotheosisItem(item.getItem())){
-//                if(!ApotheosisCompat.getRarityName(item.getItem()).equals("common") || item.getItem().getRarity() != Rarity.COMMON){
-//                    shouldRender = true;
-//                }
-//            }
+            if(ApotheosisCompat.isApotheosisItem(item.getItem())){
+                if(!ApotheosisCompat.getRarityName(item.getItem()).equals("common") || item.getItem().getRarity() != Rarity.COMMON){
+                    shouldRender = true;
+                }
+            }
         } else {
             if (item.getItem().getRarity() != Rarity.COMMON) {
                 shouldRender = true;
@@ -284,9 +285,9 @@ public class LootBeamRenderer extends RenderType {
                 backgroundColor = new Color(rarityColor.getRed(), rarityColor.getGreen(), rarityColor.getBlue(), (int) (255 * backgroundAlpha)).getRGB();
                 String rarity = item.getItem().getRarity().name().toLowerCase();
                 if (ModList.get().isLoaded("apotheosis")) {
-//                    if (ApotheosisCompat.isApotheosisItem(item.getItem())) {
-//                        rarity = ApotheosisCompat.getRarityName(item.getItem());
-//                    }
+                    if (ApotheosisCompat.isApotheosisItem(item.getItem())) {
+                        rarity = ApotheosisCompat.getRarityName(item.getItem());
+                    }
                 }
                 renderText(fontrenderer, stack, buffer, capitalize(rarity), foregroundColor, backgroundColor, backgroundAlpha);
             }

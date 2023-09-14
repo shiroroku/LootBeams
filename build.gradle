@@ -151,8 +151,8 @@ dependencies {
     // Examples using mod jars from ./libs
     // implementation fg.deobf("blank:coolmod-${mc_version}:${coolmod_version}")
 
-//    compileOnly fg.deobf("curse.maven:apotheosis-313970:4429065")
-//    compileOnly fg.deobf("curse.maven:placebo-283644:4426703")
+    compileOnly fg.deobf("curse.maven:apotheosis-313970:4724390")
+    compileOnly fg.deobf("curse.maven:placebo-283644:4723708")
     // For more info...
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
