@@ -1,6 +1,8 @@
 package com.lootbeams;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.sounds.WeighedSoundEvents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
@@ -13,7 +15,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ShieldItem;
 import net.minecraft.world.item.TieredItem;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.client.event.RenderNameTagEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
@@ -22,7 +26,9 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 @Mod.EventBusSubscriber(modid = LootBeams.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class ClientSetup {
@@ -32,6 +38,7 @@ public class ClientSetup {
 			MinecraftForge.EVENT_BUS.addListener(ClientSetup::onRenderNameplate);
 			MinecraftForge.EVENT_BUS.addListener(ClientSetup::onItemCreation);
 			MinecraftForge.EVENT_BUS.addListener(ClientSetup::entityRemoval);
+			MinecraftForge.EVENT_BUS.addListener(ClientSetup::onLevelRender);
 		});
 	}
 
@@ -41,6 +48,21 @@ public class ClientSetup {
 			if (!LootBeamRenderer.LIGHT_CACHE.contains(ie)) {
 				LootBeamRenderer.LIGHT_CACHE.add(ie);
 			}
+		}
+	}
+	public static final List<Consumer<PoseStack>> delayedRenders = new ArrayList<>();
+
+	public static void onLevelRender(RenderLevelStageEvent event) {
+		if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
+			PoseStack stack = event.getPoseStack();
+			stack.pushPose();
+			Vec3 pos = event.getCamera().getPosition();
+			stack.translate(-pos.x, -pos.y, -pos.z);
+			delayedRenders.forEach(consumer -> consumer.accept(stack));
+			stack.popPose();
+		}
+		if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_WEATHER) {
+			delayedRenders.clear();
 		}
 	}
 
@@ -93,7 +115,12 @@ public class ClientSetup {
 				&& !isItemInRegistryList(Configuration.BLACKLIST.get(), itemEntity.getItem().getItem());
 
 		if (shouldRender && (!Configuration.REQUIRE_ON_GROUND.get() || itemEntity.onGround())) {
-			LootBeamRenderer.renderLootBeam(event.getPoseStack(), event.getMultiBufferSource(), event.getPartialTick(), itemEntity.level().getGameTime(), itemEntity);
+			delayedRenders.add(stack -> {
+				stack.pushPose();
+				stack.translate(itemEntity.getX(), itemEntity.getY(), itemEntity.getZ());
+				LootBeamRenderer.renderLootBeam(stack, event.getMultiBufferSource(), event.getPartialTick(), itemEntity.level().getGameTime(), itemEntity);
+				stack.popPose();
+			});
 		}
 	}
 
