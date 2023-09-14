@@ -56,7 +56,6 @@ public class LootBeamRenderer extends RenderType {
     private static final RenderType GLOW = Configuration.GLOWING_BEAM.get() ? RenderType.entityTranslucentEmissive(GLOW_TEXTURE) : RenderType.entityCutout(GLOW_TEXTURE);
 
     private static final Random RANDOM = new Random();
-    private static final XoroshiroRandomSource RANDOM_SOURCE = new XoroshiroRandomSource(42L);
 
     public LootBeamRenderer(String name, VertexFormat format, VertexFormat.Mode mode, int size, boolean crumble, boolean sorting, Runnable enable, Runnable disable) {
         super(name, format, mode, size, crumble, sorting, enable, disable);
@@ -67,11 +66,16 @@ public class LootBeamRenderer extends RenderType {
         float beamAlpha = Configuration.BEAM_ALPHA.get().floatValue();
         float entityTime = item.tickCount;
         //Fade out when close
-        if (Minecraft.getInstance().player.distanceToSqr(item) < 2f) {
-            beamAlpha *= Minecraft.getInstance().player.distanceToSqr(item);
+        double distance = Minecraft.getInstance().player.distanceToSqr(item);
+        double fadeDistance = Configuration.BEAM_FADE_DISTANCE.get().doubleValue() * 4;
+        if (distance < 3) {
+            beamAlpha *= Math.max(0, distance - 4);
+        } else if (distance > fadeDistance * 0.75f) {
+            float fade = (float) (distance - fadeDistance * 0.75f);
+            beamAlpha *= Math.max(0, 1 - fade);
         }
         //Dont render beam if its too transparent
-        if (beamAlpha <= 0.15f) {
+        if (beamAlpha <= 0.01f) {
             return;
         }
 
