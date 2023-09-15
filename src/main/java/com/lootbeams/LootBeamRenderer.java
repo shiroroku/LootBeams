@@ -12,6 +12,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
@@ -19,6 +20,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.util.StringDecomposer;
 import net.minecraft.util.StringUtil;
@@ -312,17 +314,8 @@ public class LootBeamRenderer extends RenderType {
         if (Configuration.BORDERS.get()) {
             float w = -fontRenderer.width(text) / 2f;
             int bg = new Color(0, 0, 0, (int) (255 * backgroundAlpha)).getRGB();
-
-            //Draws background (border) text
-            GuiGraphics guiGraphics = new GuiGraphics(Minecraft.getInstance(), Minecraft.getInstance().renderBuffers().bufferSource());
-            guiGraphics.drawCenteredString(fontRenderer, text,(int) w+1, 0, bg);
-            guiGraphics.drawCenteredString(fontRenderer, text,(int) w-1, 0, bg);
-            guiGraphics.drawCenteredString(fontRenderer, text,(int) w, 1, bg);
-            guiGraphics.drawCenteredString(fontRenderer, text,(int) w, -1, bg);
-            //Draws foreground text in front of border
-            stack.translate(0.0D, 0.0D, -0.01D);
-            guiGraphics.drawCenteredString(fontRenderer, text,(int) w, 0, foregroundColor);
-            stack.translate(0.0D, 0.0D, 0.01D);
+            Component comp = Component.literal(text);
+            fontRenderer.drawInBatch8xOutline(comp.getVisualOrderText(), w, 0f, foregroundColor, bg, stack.last().pose(), buffer, LightTexture.FULL_BRIGHT);
         } else {
             fontRenderer.drawInBatch(text, (float) (-fontRenderer.width(text) / 2), 0f, foregroundColor, false, stack.last().pose(), buffer, Font.DisplayMode.NORMAL, backgroundColor, 15728864);
         }
