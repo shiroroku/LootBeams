@@ -1,7 +1,7 @@
 
 
 plugins {
-    id 'net.minecraftforge.gradle' version '5.1.+'
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
     id 'org.spongepowered.mixin' version '0.7.+'
 }
 apply plugin: 'eclipse'
@@ -10,7 +10,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'org.spongepowered.mixin'
 
 group = 'com.lootbeams'
-version = '1.0.0'
+version = '1.20.1-1.2.2'
 
 java {
     archivesBaseName = 'lootbeams'

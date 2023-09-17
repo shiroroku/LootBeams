@@ -5,9 +5,11 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.joml.Vector3d;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -19,6 +21,7 @@ public class Configuration {
 
 	public static ForgeConfigSpec CLIENT_CONFIG;
 
+	public static ForgeConfigSpec.BooleanValue ITEMS_GLOW;
 	public static ForgeConfigSpec.BooleanValue ALL_ITEMS;
 	public static ForgeConfigSpec.BooleanValue ONLY_EQUIPMENT;
 	public static ForgeConfigSpec.BooleanValue ONLY_RARE;
@@ -45,6 +48,8 @@ public class Configuration {
 
 	public static ForgeConfigSpec.BooleanValue PARTICLES;
 
+	public static ForgeConfigSpec.BooleanValue ADVANCED_TOOLTIPS;
+	public static ForgeConfigSpec.BooleanValue WORLDSPACE_TOOLTIPS;
 	public static ForgeConfigSpec.BooleanValue BORDERS;
 	public static ForgeConfigSpec.BooleanValue RENDER_NAMETAGS;
 	public static ForgeConfigSpec.BooleanValue RENDER_NAMETAGS_ONLOOK;
@@ -57,6 +62,8 @@ public class Configuration {
 	public static ForgeConfigSpec.BooleanValue DMCLOOT_COMPAT_RARITY;
 	public static ForgeConfigSpec.ConfigValue<List<String>> CUSTOM_RARITIES;
 	public static ForgeConfigSpec.BooleanValue WHITE_RARITIES;
+	public static ForgeConfigSpec.BooleanValue SCREEN_TOOLTIPS_REQUIRE_CROUCH;
+	public static ForgeConfigSpec.BooleanValue COMBINE_NAME_AND_RARITY;
 
 	public static ForgeConfigSpec.BooleanValue GLOWING_BEAM;
 
@@ -67,7 +74,18 @@ public class Configuration {
 	public static ForgeConfigSpec.DoubleValue PARTICLE_RADIUS;
 	public static ForgeConfigSpec.DoubleValue PARTICLE_COUNT;
 	public static ForgeConfigSpec.IntValue PARTICLE_LIFETIME;
+	public static ForgeConfigSpec.DoubleValue RANDOMNESS_INTENSITY;
 	public static ForgeConfigSpec.BooleanValue PARTICLE_RARE_ONLY;
+	public static ForgeConfigSpec.DoubleValue PARTICLE_DIRECTION_X;
+	public static ForgeConfigSpec.DoubleValue PARTICLE_DIRECTION_Y;
+	public static ForgeConfigSpec.DoubleValue PARTICLE_DIRECTION_Z;
+	public static ForgeConfigSpec.BooleanValue SPIN_AROUND_BEAM;
+	public static ForgeConfigSpec.BooleanValue TRAILS;
+	public static ForgeConfigSpec.DoubleValue TRAIL_CHANCE;
+	public static ForgeConfigSpec.BooleanValue TRAIL_PARTICLES_INVISIBLE;
+	public static ForgeConfigSpec.DoubleValue TRAIL_WIDTH;
+	public static ForgeConfigSpec.IntValue TRAIL_LENGTH;
+	public static ForgeConfigSpec.IntValue TRAIL_FREQUENCY;
 
 	public static ForgeConfigSpec.BooleanValue SOUND;
 	public static ForgeConfigSpec.DoubleValue SOUND_VOLUME;
@@ -105,22 +123,36 @@ public class Configuration {
 		clientBuilder.comment("Particle Config").push("Particles");
 		PARTICLES = clientBuilder.comment("If particles should appear around the item.").define("particles", true);
 		PARTICLE_SIZE = clientBuilder.comment("The size of the particles.").defineInRange("particle_size", 0.25D, 0.00001D, 10D);
-		PARTICLE_SPEED = clientBuilder.comment("The speed of the particles.").defineInRange("particle_speed", 0.1D, 0.00001D, 10D);
-		PARTICLE_RADIUS = clientBuilder.comment("The radius of the particles.").defineInRange("particle_radius", 0.05D, 0.00001D, 10D);
-		PARTICLE_COUNT = clientBuilder.comment("The amount of particles to spawn per second.").defineInRange("particle_count", 19D, 1D, 20D);
-		PARTICLE_LIFETIME = clientBuilder.comment("The lifetime of the particles in ticks.").defineInRange("particle_lifetime", 20, 1, 100);
+		PARTICLE_SPEED = clientBuilder.comment("The speed of the particles.").defineInRange("particle_speed", 0.2D, 0.00001D, 10D);
+		PARTICLE_RADIUS = clientBuilder.comment("The radius of the particles.").defineInRange("particle_radius", 0.1D, 0.00001D, 10D);
+		RANDOMNESS_INTENSITY = clientBuilder.comment("The intensity of the randomness of the particles.").defineInRange("randomness_intensity", 0.05D, 0D, 1D);
+		PARTICLE_COUNT = clientBuilder.comment("The amount of particles to spawn per second.").defineInRange("particle_count", 15D, 1D, 20D);
+		PARTICLE_LIFETIME = clientBuilder.comment("The lifetime of the particles in ticks.").defineInRange("particle_lifetime", 15, 1, 100);
 		PARTICLE_RARE_ONLY = clientBuilder.comment("If particles should only appear on rare items.").define("particle_rare_only", true);
+		PARTICLE_DIRECTION_X = clientBuilder.comment("The direction of the particles on the X axis.").defineInRange("particle_direction_x", 0D, -1D, 1D);
+		PARTICLE_DIRECTION_Y = clientBuilder.comment("The direction of the particles on the Y axis.").defineInRange("particle_direction_y", 1D, -1D, 1D);
+		PARTICLE_DIRECTION_Z = clientBuilder.comment("The direction of the particles on the Z axis.").defineInRange("particle_direction_z", 0D, -1D, 1D);
+		SPIN_AROUND_BEAM = clientBuilder.comment("If the particles should spin around the beam.").define("spin_around_beam", true);
+		TRAILS = clientBuilder.comment("If the particles should leave a trail.").define("trails", true);
+		TRAIL_CHANCE = clientBuilder.comment("The chance of a particle leaving a trail.").defineInRange("trail_chance", 0.5D, 0D, 1D);
+		TRAIL_PARTICLES_INVISIBLE = clientBuilder.comment("If the particles with a trail should be invisible.").define("trail_particles_invisible", true);
+		TRAIL_WIDTH = clientBuilder.comment("The width of the trail.").defineInRange("trail_width", 0.2D, 0.00001D, 10D);
+		TRAIL_LENGTH = clientBuilder.comment("The length of the trail.").defineInRange("trail_length", 30, 1, 200);
+		TRAIL_FREQUENCY = clientBuilder.comment("The frequency of the trail. The maximum value this should be is the length. The lower the frequency, the smoother the trail.").defineInRange("trail_frequency", 1, 1, 200);
 		clientBuilder.pop();
 
 		clientBuilder.comment("Item Config").push("Items");
-		ALL_ITEMS = clientBuilder.comment("If all Items Loot Beams should be rendered. Has priority over only_equipment and only_rare.").define("all_items", true);
-		ONLY_RARE = clientBuilder.comment("If Loot Beams should only be rendered on items with rarity.").define("only_rare", false);
-		ONLY_EQUIPMENT = clientBuilder.comment("If Loot Beams should only be rendered on equipment. (Equipment includes: Swords, Tools, Armor, Shields, Bows, Crossbows, Tridents, Arrows, and Fishing Rods)").define("only_equipment", false);
+		ITEMS_GLOW = clientBuilder.comment("If items should glow.").define("items_glow", false);
+		ALL_ITEMS = clientBuilder.comment("If all Items Loot Beams should be rendered. Has priority over only_equipment and only_rare.").define("all_items", false);
+		ONLY_RARE = clientBuilder.comment("If Loot Beams should only be rendered on items with rarity.").define("only_rare", true);
+		ONLY_EQUIPMENT = clientBuilder.comment("If Loot Beams should only be rendered on equipment. (Equipment includes: Swords, Tools, Armor, Shields, Bows, Crossbows, Tridents, Arrows, and Fishing Rods)").define("only_equipment", true);
 		WHITELIST = clientBuilder.comment("Registry names of items that Loot Beams should render on. Example: \"minecraft:stone\", \"minecraft:iron_ingot\", You can also specify modids for a whole mod's items.").define("whitelist", new ArrayList<>());
 		BLACKLIST = clientBuilder.comment("Registry names of items that Loot Beams should NOT render on. This has priority over everything. You can also specify modids for a whole mod's items.").define("blacklist", new ArrayList<>());
 		clientBuilder.pop();
 
 		clientBuilder.comment("Item nametags").push("Nametags");
+		ADVANCED_TOOLTIPS = clientBuilder.comment("If vanilla tooltips should be rendered on items in world.").define("advanced_tooltips", true);
+		WORLDSPACE_TOOLTIPS = clientBuilder.comment("If tooltips should be rendered in world.").define("worldspace_tooltips", true);
 		BORDERS = clientBuilder.comment("Render nametags as bordered. Set to false for flat nametag with background.").define("borders", true);
 		RENDER_NAMETAGS = clientBuilder.comment("If Item nametags should be rendered.").define("render_nametags", true);
 		RENDER_NAMETAGS_ONLOOK = clientBuilder.comment("If Item nametags should be rendered when looking at items.").define("render_nametags_onlook", true);
@@ -134,6 +166,8 @@ public class Configuration {
 		CUSTOM_RARITIES = clientBuilder.comment("Define what the smaller tag should render on. Example: \"Exotic\", \"Ancient\". The string supplied has to be the tooltip line below the name. This is really only used for modpacks.").define("custom_rarities", new ArrayList<>());
 		WHITE_RARITIES = clientBuilder.comment("If rarities should ignore color and render as white (This is really only used for modpacks)").define("white_rarities", false);
 		VANILLA_RARITIES = clientBuilder.comment("If vanilla rarities should be rendered.").define("vanilla_rarities", true);
+		SCREEN_TOOLTIPS_REQUIRE_CROUCH = clientBuilder.comment("If the player should be crouching to see extended advanced tooltips.").define("screen_tooltips_require_crouch", true);
+		COMBINE_NAME_AND_RARITY = clientBuilder.comment("If the name and rarity should be combined into one tooltip.").define("combine_name_and_rarity", false);
 		clientBuilder.pop();
 
 		clientBuilder.comment("Sounds").push("Sounds");

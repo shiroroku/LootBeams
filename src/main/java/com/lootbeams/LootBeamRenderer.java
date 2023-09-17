@@ -85,8 +85,8 @@ public class LootBeamRenderer extends RenderType {
         float glowRadius = beamRadius + (beamRadius * 0.2f);
         float beamHeight = Configuration.BEAM_HEIGHT.get().floatValue();
         float yOffset = Configuration.BEAM_Y_OFFSET.get().floatValue();
-        if(Configuration.COMMON_SHORTER_BEAM.get()){
-            if(!compatRarityCheck(item, false)){
+        if (Configuration.COMMON_SHORTER_BEAM.get()) {
+            if (!compatRarityCheck(item, false)) {
                 beamHeight *= 0.65f;
                 yOffset -= yOffset;
             }
@@ -169,11 +169,13 @@ public class LootBeamRenderer extends RenderType {
     }
 
     static boolean compatRarityCheck(ItemEntity item, boolean shouldRender) {
-        if(ModList.get().isLoaded("apotheosis")){
-            if(ApotheosisCompat.isApotheosisItem(item.getItem())){
-                if(!ApotheosisCompat.getRarityName(item.getItem()).equals("common") || item.getItem().getRarity() != Rarity.COMMON){
+        if (ModList.get().isLoaded("apotheosis")) {
+            if (ApotheosisCompat.isApotheosisItem(item.getItem())) {
+                if (!ApotheosisCompat.getRarityName(item.getItem()).equals("common") || item.getItem().getRarity() != Rarity.COMMON) {
                     shouldRender = true;
                 }
+            } else if (item.getItem().getRarity() != Rarity.COMMON) {
+                shouldRender = true;
             }
         } else {
             if (item.getItem().getRarity() != Rarity.COMMON) {
@@ -184,15 +186,25 @@ public class LootBeamRenderer extends RenderType {
     }
 
     private static void renderParticles(float pticks, ItemEntity item, int entityTime, float r, float g, float b) {
-        float particleCount = Math.abs(20- Configuration.PARTICLE_COUNT.get().floatValue());
+        float particleCount = Math.abs(20 - Configuration.PARTICLE_COUNT.get().floatValue());
         if (entityTime % particleCount == 0 && pticks < 0.3f && !Minecraft.getInstance().isPaused()) {
+            Vec3 randomDir = new Vec3(RANDOM.nextDouble(-Configuration.PARTICLE_SPEED.get() / 2.0f, Configuration.PARTICLE_SPEED.get() / 2.0f),
+                    RANDOM.nextDouble(Configuration.PARTICLE_SPEED.get()/2f, Configuration.PARTICLE_SPEED.get()),
+                    RANDOM.nextDouble(-Configuration.PARTICLE_SPEED.get() / 2.0f, Configuration.PARTICLE_SPEED.get() / 2.0f))
+                    .multiply(
+                            Configuration.RANDOMNESS_INTENSITY.get(),
+                            Configuration.RANDOMNESS_INTENSITY.get(),
+                            Configuration.RANDOMNESS_INTENSITY.get()
+                    );
+            Vec3 particleDir = new Vec3(
+                    Configuration.PARTICLE_DIRECTION_X.get(),
+                    Configuration.PARTICLE_DIRECTION_Y.get(),
+                    Configuration.PARTICLE_DIRECTION_Z.get()
+            ).multiply(randomDir);
             addParticle(ModClientEvents.GLOW_TEXTURE, r, g, b, 1.0f, Configuration.PARTICLE_LIFETIME.get(), RANDOM.nextFloat((float) (0.25f * Configuration.PARTICLE_SIZE.get()), (float) (1.1f * Configuration.PARTICLE_SIZE.get())), new Vec3(
                             RANDOM.nextDouble(item.getX() - Configuration.PARTICLE_RADIUS.get(), item.getX() + Configuration.PARTICLE_RADIUS.get()),
-                            RANDOM.nextDouble(item.getY() - (Configuration.PARTICLE_RADIUS.get()/3f), item.getY() + (Configuration.PARTICLE_RADIUS.get()/3f)),
-                            RANDOM.nextDouble(item.getZ() - Configuration.PARTICLE_RADIUS.get(), item.getZ() + Configuration.PARTICLE_RADIUS.get())),
-                    new Vec3(RANDOM.nextDouble(-Configuration.PARTICLE_SPEED.get()/2.0f, Configuration.PARTICLE_SPEED.get()/2.0f),
-                            RANDOM.nextDouble(Configuration.PARTICLE_SPEED.get()),
-                            RANDOM.nextDouble(-Configuration.PARTICLE_SPEED.get()/2.0f, Configuration.PARTICLE_SPEED.get()/2.0f)));
+                            RANDOM.nextDouble(item.getY() - (Configuration.PARTICLE_RADIUS.get() / 3f), item.getY() + (Configuration.PARTICLE_RADIUS.get() / 3f)),
+                            RANDOM.nextDouble(item.getZ() - Configuration.PARTICLE_RADIUS.get(), item.getZ() + Configuration.PARTICLE_RADIUS.get())), particleDir, item.position());
         }
     }
 
@@ -201,11 +213,12 @@ public class LootBeamRenderer extends RenderType {
         return Mth.lerp(val, 0.25f, max);
     }
 
-    private static void addParticle(ResourceLocation spriteLocation, float red, float green, float blue, float alpha, int lifetime, float size, Vec3 pos, Vec3 motion) {
+    private static void addParticle(ResourceLocation spriteLocation, float red, float green, float blue, float alpha, int lifetime, float size, Vec3 pos, Vec3 motion, Vec3 sourcePos) {
         Minecraft mc = Minecraft.getInstance();
         //make the particle brighter
         alpha *= 1.5f;
         VFXParticle provider = new VFXParticle(mc.level, mc.particleEngine.textureAtlas.getSprite(spriteLocation), red, green, blue, alpha, lifetime, size, pos, motion, 0, false, true);
+        provider.setParticleCenter(sourcePos);
         mc.particleEngine.add(provider);
     }
 
@@ -221,6 +234,7 @@ public class LootBeamRenderer extends RenderType {
     }
 
     private static void renderNameTag(PoseStack stack, MultiBufferSource buffer, ItemEntity item, Color color) {
+        if(Configuration.ADVANCED_TOOLTIPS.get()) return;
         //If player is crouching or looking at the item
         if (Minecraft.getInstance().player.isCrouching() || (Configuration.RENDER_NAMETAGS_ONLOOK.get() && isLookingAt(Minecraft.getInstance().player, item, Configuration.NAMETAG_LOOK_SENSITIVITY.get()))) {
             float foregroundAlpha = Configuration.NAMETAG_TEXT_ALPHA.get().floatValue();
@@ -293,6 +307,8 @@ public class LootBeamRenderer extends RenderType {
                 if (ModList.get().isLoaded("apotheosis")) {
                     if (ApotheosisCompat.isApotheosisItem(item.getItem())) {
                         rarity = ApotheosisCompat.getRarityName(item.getItem());
+                    } else {
+                        rarity = item.getItem().getRarity().name().toLowerCase();
                     }
                 }
                 renderText(fontrenderer, stack, buffer, capitalize(rarity), foregroundColor, backgroundColor, backgroundAlpha);
@@ -302,9 +318,9 @@ public class LootBeamRenderer extends RenderType {
         }
     }
 
-    private static String capitalize(String str) {
+    public static String capitalize(String str) {
         if (str == null || str.isEmpty()) {
-            return str;
+            return "";
         }
 
         return str.substring(0, 1).toUpperCase() + str.substring(1);
