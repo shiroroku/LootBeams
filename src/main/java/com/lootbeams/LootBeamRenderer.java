@@ -17,6 +17,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
@@ -171,9 +172,7 @@ public class LootBeamRenderer extends RenderType {
     static boolean compatRarityCheck(ItemEntity item, boolean shouldRender) {
         if (ModList.get().isLoaded("apotheosis")) {
             if (ApotheosisCompat.isApotheosisItem(item.getItem())) {
-                if (!ApotheosisCompat.getRarityName(item.getItem()).equals("common") || item.getItem().getRarity() != Rarity.COMMON) {
-                    shouldRender = true;
-                }
+                shouldRender = !ApotheosisCompat.getRarityName(item.getItem()).contains("apotheosis:common") || item.getItem().getRarity() != Rarity.COMMON;
             } else if (item.getItem().getRarity() != Rarity.COMMON) {
                 shouldRender = true;
             }
@@ -303,19 +302,25 @@ public class LootBeamRenderer extends RenderType {
                 Color rarityColor = getRawColor(tooltip.get(0));
                 foregroundColor = new Color(rarityColor.getRed(), rarityColor.getGreen(), rarityColor.getBlue(), (int) (255 * foregroundAlpha)).getRGB();
                 backgroundColor = new Color(rarityColor.getRed(), rarityColor.getGreen(), rarityColor.getBlue(), (int) (255 * backgroundAlpha)).getRGB();
-                String rarity = item.getItem().getRarity().name().toLowerCase();
-                if (ModList.get().isLoaded("apotheosis")) {
-                    if (ApotheosisCompat.isApotheosisItem(item.getItem())) {
-                        rarity = ApotheosisCompat.getRarityName(item.getItem());
-                    } else {
-                        rarity = item.getItem().getRarity().name().toLowerCase();
-                    }
-                }
-                renderText(fontrenderer, stack, buffer, capitalize(rarity), foregroundColor, backgroundColor, backgroundAlpha);
+                renderText(fontrenderer, stack, buffer, getRarity(item.getItem()), foregroundColor, backgroundColor, backgroundAlpha);
             }
 
             stack.popPose();
         }
+    }
+
+    public static String getRarity(ItemStack stack) {
+        String rarity = stack.getRarity().name().toLowerCase();
+        if (ModList.get().isLoaded("apotheosis")) {
+            if (ApotheosisCompat.isApotheosisItem(stack)) {
+                rarity = ApotheosisCompat.getRarityName(stack);
+            }
+        }
+        rarity = rarity.replace(":",".").replace("_",".");
+        if(I18n.exists(rarity)){
+            return I18n.get(rarity);
+        }
+        return rarity;
     }
 
     public static String capitalize(String str) {

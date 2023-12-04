@@ -91,7 +91,7 @@ public class ClientSetup {
 											.orElse(Screen.getTooltipFromItem(Minecraft.getInstance(), itemEntity.getItem()).get(0));
 							if(Configuration.SCREEN_TOOLTIPS_REQUIRE_CROUCH.get() && !player.isCrouching()) longestLine = tooltipLines.get(0);
 							x = (int)desiredScreenSpacePos.x() - 10 - Minecraft.getInstance().font.width(longestLine) / 2;
-							rarityX = (int)desiredScreenSpacePos.x() - 12 - Minecraft.getInstance().font.width(LootBeamRenderer.capitalize(itemEntity.getItem().getRarity().name().toLowerCase())) / 2;
+							rarityX = (int)desiredScreenSpacePos.x() - 12 - Minecraft.getInstance().font.width(LootBeamRenderer.getRarity(itemEntity.getItem())) / 2;
 							y = (int)desiredScreenSpacePos.y();
 						}
 						int guiScale = Minecraft.getInstance().options.guiScale().get();
@@ -101,10 +101,10 @@ public class ClientSetup {
 						if((Configuration.SCREEN_TOOLTIPS_REQUIRE_CROUCH.get() && player.isCrouching()) || !Configuration.SCREEN_TOOLTIPS_REQUIRE_CROUCH.get()) {
 							event.getGuiGraphics().renderTooltip(Minecraft.getInstance().font, itemEntity.getItem(), x, y);
 						} else {
-							tooltipLines = List.of(tooltipLines.get(0), Component.literal(LootBeamRenderer.capitalize(itemEntity.getItem().getRarity().name().toLowerCase())).withStyle(itemEntity.getItem().getDisplayName().getStyle()));
+							tooltipLines = List.of(tooltipLines.get(0), Component.literal(LootBeamRenderer.getRarity(itemEntity.getItem())).withStyle(itemEntity.getItem().getDisplayName().getStyle()));
 							if(ModList.get().isLoaded("apotheosis")) {
 								if(ApotheosisCompat.isApotheosisItem(itemEntity.getItem())) {
-									tooltipLines = List.of(tooltipLines.get(0), Component.literal(LootBeamRenderer.capitalize(ApotheosisCompat.getRarityName(itemEntity.getItem()))).withStyle(s -> s.withColor(ApotheosisCompat.getRarityColor(itemEntity.getItem()))));
+									tooltipLines = List.of(tooltipLines.get(0), Component.literal(LootBeamRenderer.getRarity(itemEntity.getItem())).withStyle(s -> s.withColor(ApotheosisCompat.getRarityColor(itemEntity.getItem()))));
 								}
 							}
 							if(Configuration.COMBINE_NAME_AND_RARITY.get()) {
@@ -252,7 +252,7 @@ public class ClientSetup {
 		Item item = itemEntity.getItem().getItem();
 		boolean shouldRender = (Configuration.ALL_ITEMS.get()
 				|| (Configuration.ONLY_EQUIPMENT.get() && isEquipmentItem(item))
-				|| (Configuration.ONLY_RARE.get())
+				|| (Configuration.ONLY_RARE.get() && LootBeamRenderer.compatRarityCheck(itemEntity, false))
 				|| (isItemInRegistryList(Configuration.WHITELIST.get(), itemEntity.getItem().getItem())))
 				&& !isItemInRegistryList(Configuration.BLACKLIST.get(), itemEntity.getItem().getItem());
 

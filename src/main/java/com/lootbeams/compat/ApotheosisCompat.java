@@ -5,6 +5,7 @@ import dev.shadowsoffire.apotheosis.adventure.affix.AffixHelper;
 import dev.shadowsoffire.apotheosis.adventure.affix.salvaging.SalvageItem;
 import dev.shadowsoffire.apotheosis.adventure.affix.socket.gem.GemItem;
 import dev.shadowsoffire.apotheosis.adventure.loot.LootRarity;
+import dev.shadowsoffire.apotheosis.adventure.loot.RarityRegistry;
 import dev.shadowsoffire.placebo.reload.DynamicHolder;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.world.item.ItemStack;
@@ -14,6 +15,9 @@ public class ApotheosisCompat {
     public static String getRarityName(ItemStack stack){
         if(!isApotheosisItem(stack)) return stack.getRarity().name().toLowerCase();
         DynamicHolder<LootRarity> rarity = AffixHelper.getRarity(stack);
+        if(stack.getItem() instanceof SalvageItem si) {
+            rarity = RarityRegistry.getMaterialRarity(si);
+        }
         if(rarity.get() == null) return stack.getRarity().name().toLowerCase();
         return rarity.get().toComponent().getString().toLowerCase();
     }
@@ -26,6 +30,6 @@ public class ApotheosisCompat {
     }
 
     public static boolean isApotheosisItem(ItemStack stack){
-        return AffixHelper.hasAffixes(stack);// || stack.getItem() instanceof SalvageItem || stack.getItem() instanceof GemItem;
+        return AffixHelper.hasAffixes(stack);
     }
 }
