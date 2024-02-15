@@ -7,14 +7,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
 import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.ForgeRenderTypes;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -141,7 +139,6 @@ public class VFXParticle extends TextureSheetParticle {
         if (this.age++ >= this.lifetime) {
             this.remove();
         } else {
-//            this.yd -= 0.02D * (double) this.gravity;
             this.move(this.xd, this.yd, this.zd);
         }
     }
@@ -160,17 +157,13 @@ public class VFXParticle extends TextureSheetParticle {
         Vec3 particleToCenterOnAxisUnitCrossVortexAxis = particleToCenterOnAxisUnit.cross(axis);
         Vec3 particleToCenterOnAxisUnitCrossVortexAxisUnit = particleToCenterOnAxisUnitCrossVortexAxis.normalize();
         Vec3 particleToCenterOnAxisUnitCrossVortexAxisUnitScaled = particleToCenterOnAxisUnitCrossVortexAxisUnit.scale(0.01f);
-        // make the particle not move outwards but inwards
         this.xd += particleToCenterOnAxisUnitCrossVortexAxisUnitScaled.x * 0.65;
         this.yd += particleToCenterOnAxisUnitCrossVortexAxisUnitScaled.y;
         this.zd += particleToCenterOnAxisUnitCrossVortexAxisUnitScaled.z * 0.65;
 
-        // pull the particle towards the center + the height
         Vec3 target = particleCenter.add(axis.add(0,Configuration.BEAM_Y_OFFSET.get(),0));
-        Vec3 distanceToTarget = target.subtract(this.getPosition());
         Vec3 particleToTarget = target.subtract(this.getPosition());
         Vec3 particleToTargetUnit = particleToTarget.normalize();
-        // speed up the further away the particle is from the target
         int mod = this.y > target.y ? 0 : 1;
         Vec3 particleToTargetUnitScaled = particleToTargetUnit.scale(Configuration.PARTICLE_SPEED.get() * mod);
         this.xd += particleToTargetUnitScaled.x;

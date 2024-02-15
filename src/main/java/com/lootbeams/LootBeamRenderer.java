@@ -464,7 +464,8 @@ public class LootBeamRenderer extends RenderType {
     private static boolean isLookingAt(LocalPlayer player, Entity target, double accuracy) {
         Vec3 difference = new Vec3(target.getX() - player.getX(), target.getEyeY() - player.getEyeY(), target.getZ() - player.getZ());
         double length = difference.length();
-        double dot = player.getViewVector(1.0F).normalize().dot(difference.normalize());
+//        double dot = player.getViewVector(1.0F).normalize().dot(difference.normalize());
+        double dot = Minecraft.getInstance().getCameraEntity().getLookAngle().normalize().dot(difference.normalize());
         return dot > 1.0D - accuracy / length && !target.isInvisible();
     }
 

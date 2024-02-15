@@ -18,7 +18,7 @@ public class ApotheosisCompat {
         if(stack.getItem() instanceof SalvageItem si) {
             rarity = RarityRegistry.getMaterialRarity(si);
         }
-        if(rarity.get() == null) return stack.getRarity().name().toLowerCase();
+        if(!rarity.isBound()) return stack.getRarity().name().toLowerCase();
         return rarity.get().toComponent().getString().toLowerCase();
     }
 
@@ -30,6 +30,6 @@ public class ApotheosisCompat {
     }
 
     public static boolean isApotheosisItem(ItemStack stack){
-        return AffixHelper.hasAffixes(stack);
+        return AffixHelper.hasAffixes(stack) || stack.getItem() instanceof GemItem || stack.getItem() instanceof SalvageItem;
     }
 }
