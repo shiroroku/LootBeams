@@ -8,7 +8,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'org.spongepowered.mixin'
 
 group = 'com.lootbeams'
-version = '1.20.1-1.2.4'
+version = '1.20.1-1.2.5'
 
 java {
     archivesBaseName = 'lootbeams'

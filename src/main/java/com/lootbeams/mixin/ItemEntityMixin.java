@@ -11,18 +11,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ItemEntity.class)
 public class ItemEntityMixin {
     @Unique
-    private boolean hasPlayedSound = false;
+    private boolean lootBeams$hasPlayedSound = false;
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void onTick(CallbackInfo ci) {
         ItemEntity itemEntity = (ItemEntity) (Object) this;
-        if (!hasPlayedSound && (itemEntity.onGround() || (itemEntity.onGround() && (itemEntity.tickCount < 10 && itemEntity.tickCount > 3)))) {
+        if (!lootBeams$hasPlayedSound && (itemEntity.onGround() || (itemEntity.onGround() && (itemEntity.tickCount < 10 && itemEntity.tickCount > 3)))) {
             ClientSetup.playDropSound(itemEntity);
-            hasPlayedSound = true;
+            lootBeams$hasPlayedSound = true;
         }
 
-        if(hasPlayedSound && !itemEntity.onGround()){
-            hasPlayedSound = false;
+        if(lootBeams$hasPlayedSound && !itemEntity.onGround()){
+            lootBeams$hasPlayedSound = false;
         }
     }
 }

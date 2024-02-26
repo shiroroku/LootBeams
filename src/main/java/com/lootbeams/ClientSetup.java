@@ -38,6 +38,7 @@ import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.client.event.RenderNameTagEvent;
 import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -63,6 +64,13 @@ public class ClientSetup {
 			MinecraftForge.EVENT_BUS.addListener(ClientSetup::entityRemoval);
 			MinecraftForge.EVENT_BUS.addListener(ClientSetup::onLevelRender);
 		});
+	}
+
+	@SubscribeEvent
+	public static void onClientTick(TickEvent.ClientTickEvent event) {
+		if(event.phase.equals(TickEvent.Phase.START)) {
+			if(playSoundCooldown > 0) playSoundCooldown--;
+		}
 	}
 	@SubscribeEvent
 	public static void onHudRender(RenderGuiOverlayEvent.Post event) {
@@ -226,7 +234,9 @@ public class ClientSetup {
 		return light;
 	}
 
+	public static int playSoundCooldown = 0;
 	public static void playDropSound(ItemEntity itemEntity) {
+		if(playSoundCooldown != 0) return;
 		if (!Configuration.SOUND.get()) {
 			return;
 		}
@@ -239,6 +249,7 @@ public class ClientSetup {
 			WeighedSoundEvents sound = Minecraft.getInstance().getSoundManager().getSoundEvent(LootBeams.LOOT_DROP);
 			if(sound != null && Minecraft.getInstance().level != null) {
 				Minecraft.getInstance().level.playSound(Minecraft.getInstance().player, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), SoundEvent.createFixedRangeEvent(LootBeams.LOOT_DROP, 8.0f), SoundSource.AMBIENT, 0.1f * Configuration.SOUND_VOLUME.get().floatValue(), 1.0f);
+				playSoundCooldown = 3;
 			}
 		}
 	}
