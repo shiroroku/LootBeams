@@ -14,10 +14,7 @@ public class ApotheosisCompat {
         if (stack.getItem() instanceof SalvageItem salvageItem) {
             return AdventureModule.RARITY_MATERIALS.inverse().get(salvageItem).id().toLowerCase();
         }
-        if (stack.getItem() instanceof GemItem) {
-            return GemItem.getLootRarity(stack).id().toLowerCase();
-        }
-        LootRarity rarity = AffixHelper.getRarity(stack);
+        LootRarity rarity = stack.getItem() instanceof GemItem ? GemItem.getLootRarity(stack) : AffixHelper.getRarity(stack);
         if (rarity == null) return stack.getRarity().name().toLowerCase();
         return rarity.id().toLowerCase();
     }
